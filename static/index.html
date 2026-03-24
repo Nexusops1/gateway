@@ -97,7 +97,7 @@ body::before{
 @keyframes tickerScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
 
 /* ── LAYOUT ────────────────────────── */
-.hud-bl{position:relative}
+.hud-bl{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .main{display:flex;gap:16px;padding:16px 24px;height:calc(100vh - 100px);position:relative;z-index:2}
 .col-left{flex:6;min-width:0}
 .col-right{flex:4;display:flex;flex-direction:column;gap:14px}
@@ -117,24 +117,26 @@ body::before{
 .term-dots span{width:8px;height:8px;border-radius:50%;border:1px solid var(--red-dim)}
 .term-body{
   flex:1;padding:14px;overflow-y:auto;font-size:12px;line-height:1.6;
+  min-height:0;background:#000;
   scrollbar-width:thin;scrollbar-color:var(--red-dim) transparent;
 }
 .term-body::-webkit-scrollbar{width:4px}
 .term-body::-webkit-scrollbar-thumb{background:var(--red-dim);border-radius:2px}
-.term-line{white-space:pre;color:var(--red-bright)}
-.term-line .ok{color:#00ff66}
+.term-line{white-space:pre;color:#fff}
+.term-line .ok{color:#00ff66;font-weight:bold}
+.term-line .tag{color:#ff3333}
 .term-line .ts{color:#888}
-.term-line .ticker{color:var(--white)}
-.term-line .qualified{color:var(--red-bright)}
-.term-line .monitoring{color:#cc6600}
+.term-line .ticker{color:#fff;font-weight:bold}
+.term-line .qualified{color:#ff3333}
+.term-line .monitoring{color:#ffaa00}
 .term-line .position{color:#ffaa00}
 .term-line .tp-hit{color:#00ff66}
 .cursor{
-  display:inline-block;width:8px;height:14px;background:var(--red-core);
+  display:inline-block;width:8px;height:14px;background:#ff0000;
   animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px;
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.progress-bar{color:var(--red-core)}
+.progress-bar{color:#ff0000}
 
 /* ── SERVICE TILES ─────────────────── */
 .tile{
@@ -336,13 +338,19 @@ async function typeLine(text, charDelay) {
     term.scrollTop = term.scrollHeight;
     if (charDelay > 0) await sleep(charDelay);
   }
+  // Colorize prefixes after typing
+  const raw = div.textContent;
+  div.innerHTML = raw
+    .replace(/\[(INIT|CORE|EXEC|TRAD)\]/g, '<span class="tag">[$1]</span>')
+    .replace(/^(>)/, '<span class="tag">&gt;</span>');
   return div;
 }
 
 async function typeLineOk(text) {
   const div = await typeLine(text, 8);
   await sleep(200 + Math.random() * 300);
-  div.innerHTML = text + '<span class="ok">OK</span>';
+  const colored = div.innerHTML;
+  div.innerHTML = colored + '<span class="ok"> OK</span>';
   term.scrollTop = term.scrollHeight;
 }
 
