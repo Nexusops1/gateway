@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACCESS DENIED — NEXUS SECURITY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#080c12;color:#ccc;font-family:'Share Tech Mono',monospace;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;letter-spacing:0.15em;
+}
+body::after{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);
+}
+/* Corner brackets */
+.corner{position:fixed;width:30px;height:30px;border-color:#00b8cc;border-style:solid;z-index:10;
+  animation:cornerPulse 3s ease-in-out infinite}
+.c-tl{top:16px;left:16px;border-width:2px 0 0 2px}
+.c-tr{top:16px;right:16px;border-width:2px 2px 0 0}
+.c-bl{bottom:16px;left:16px;border-width:0 0 2px 2px}
+.c-br{bottom:16px;right:16px;border-width:0 2px 2px 0}
+@keyframes cornerPulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* Red flash */
+.flash{position:fixed;inset:0;background:#ff0000;opacity:0;pointer-events:none;z-index:100}
+
+.wrap{position:relative;z-index:5;text-align:center;max-width:600px;padding:40px}
+
+.warn-icon{font-size:60px;color:#00e5ff;animation:warnPulse 2s ease-in-out infinite;display:block;margin-bottom:16px}
+@keyframes warnPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:0.7}}
+
+.title{
+  font-family:'Orbitron',sans-serif;font-size:52px;font-weight:900;
+  color:#00e5ff;letter-spacing:0.15em;line-height:1;
+  animation:glitch 2s infinite;
+  text-shadow:0 0 20px #00e5ff66,0 0 60px #00e5ff22;
+}
+@keyframes glitch{
+  0%,92%,100%{transform:none;text-shadow:0 0 20px #00e5ff66}
+  93%{transform:translateX(-4px) skewX(-2deg);clip-path:inset(20% 0 40% 0);text-shadow:4px 0 #00e5ff,-4px 0 #ff0000}
+  94%{transform:translateX(4px) skewX(2deg);clip-path:inset(50% 0 10% 0);text-shadow:-4px 0 #00e5ff,4px 0 #ff0000}
+  95%{transform:translateX(-2px);clip-path:inset(30% 0 30% 0);text-shadow:2px 0 #00e5ff,-2px 0 #ff0000}
+  96%{transform:none;clip-path:none;text-shadow:0 0 20px #00e5ff66}
+}
+
+.sub{font-size:11px;color:#888;letter-spacing:0.3em;margin-top:12px}
+.divider{height:1px;background:#00b8cc;margin:24px auto;width:200px;opacity:0.5}
+
+/* Trace bar */
+.trace-label{font-size:10px;color:#00b8cc;letter-spacing:0.2em;margin-bottom:8px}
+.trace-wrap{
+  width:300px;height:20px;margin:0 auto 16px;
+  border:1px solid #00b8cc;position:relative;overflow:hidden;
+  clip-path:polygon(6px 0,calc(100% - 6px) 0,100% 6px,100% calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,0 calc(100% - 6px),0 6px);
+}
+.trace-fill{height:100%;background:linear-gradient(90deg,#00b8cc,#00e5ff);width:0%;transition:width 0.1s linear}
+.trace-status{font-size:10px;color:#00e5ff;height:14px;margin-bottom:20px;letter-spacing:0.15em}
+
+/* Origin data */
+.origin{font-size:11px;color:#888;line-height:2;margin-bottom:24px}
+.origin .val{color:#ccc}
+.origin .crit{color:#ff3333;animation:critBlink 1s step-end infinite}
+@keyframes critBlink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Button */
+.auth-btn{
+  display:inline-block;padding:12px 28px;
+  background:transparent;border:1px solid #00e5ff;
+  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  color:#00e5ff;font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:0.25em;
+  text-decoration:none;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;
+}
+.auth-btn:hover{background:#00e5ff15;box-shadow:0 0 15px #00e5ff66;text-shadow:0 0 8px #00e5ff66}
+.auth-btn::after{
+  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+  background:linear-gradient(90deg,transparent,#00e5ff22,transparent);transition:left 0.5s;
+}
+.auth-btn:hover::after{left:100%}
+
+.footer{position:fixed;bottom:16px;left:0;right:0;text-align:center;font-size:8px;color:#444;letter-spacing:0.2em;z-index:5}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="corner c-tl"></div><div class="corner c-tr"></div>
+<div class="corner c-bl"></div><div class="corner c-br"></div>
+<div class="flash" id="flash"></div>
+
+<div class="wrap">
+  <span class="warn-icon">&#x26A0;</span>
+  <div class="title">ACCESS DENIED</div>
+  <div class="sub">UNAUTHORIZED ACCESS ATTEMPT LOGGED</div>
+  <div class="divider"></div>
+  <div class="trace-label">IDENTIFYING INTRUDER // CONTACTING NEXUS SECURITY</div>
+  <div class="trace-wrap"><div class="trace-fill" id="trace-fill"></div></div>
+  <div class="trace-status" id="trace-status">&nbsp;</div>
+  <div class="origin">
+    ORIGIN IP: <span class="val" id="ip">---</span><br>
+    COORDINATES: <span class="val" id="coords">---</span><br>
+    THREAT LEVEL: <span class="crit">CRITICAL</span>
+  </div>
+  <a href="/" class="auth-btn">RETURN TO AUTHENTICATION</a>
+</div>
+
+<div class="footer">NEXUS LABS // PRAXIUM HOLDINGS // ALL ACCESS ATTEMPTS ARE LOGGED AND MONITORED</div>
+
+<script>
+// Trace bar animation
+const fill = document.getElementById('trace-fill');
+const status = document.getElementById('trace-status');
+let pct = 0;
+setInterval(() => {
+  pct += 2;
+  if (pct > 100) {
+    status.textContent = 'TRACE COMPLETE';
+    setTimeout(() => { pct = 0; status.textContent = ''; }, 1500);
+    pct = 0;
+  }
+  fill.style.width = pct + '%';
+}, 100);
+
+// Randomize IP + coords
+const ip = document.getElementById('ip');
+const coords = document.getElementById('coords');
+setInterval(() => {
+  ip.textContent = [192,168,Math.floor(Math.random()*255),Math.floor(Math.random()*255)].join('.');
+  const lat = (Math.random()*180-90).toFixed(4);
+  const lng = (Math.random()*360-180).toFixed(4);
+  coords.textContent = lat + ', ' + lng;
+}, 500);
+
+// Red flash
+const flash = document.getElementById('flash');
+function doFlash() {
+  flash.style.opacity = '0.05';
+  setTimeout(() => { flash.style.opacity = '0'; }, 100);
+  setTimeout(doFlash, 3000 + Math.random() * 5000);
+}
+setTimeout(doFlash, 2000);
+</script>
+</body>
+</html>

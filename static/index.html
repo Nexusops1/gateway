@@ -94,43 +94,35 @@ body::before{
 .col-left{flex:6;min-width:0;display:flex;flex-direction:column}
 .col-right{flex:4;display:flex;flex-direction:column;gap:14px}
 
-/* TERMINAL */
-.terminal{
-  background:#000;border:1px solid var(--cyan-dim);
-  box-shadow:0 0 10px var(--cyan-glow),0 0 30px #00e5ff22,inset 0 0 10px #00e5ff08;
-  flex:1;display:flex;flex-direction:column;min-height:0;border-radius:2px;
+/* LEFT PANEL */
+.left-panel{display:flex;flex-direction:column;gap:12px;height:100%}
+
+/* Zone 1: Stats Grid */
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat-box{
+  border:1px solid var(--cyan-dim);background:#000;padding:10px;text-align:center;
+  box-shadow:inset 0 0 6px #00e5ff08;
 }
-.terminal > .hud-bl{display:flex;flex-direction:column;flex:1;min-height:0}
-.term-titlebar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;border-bottom:1px solid #0a1020;
-  font-size:10px;color:#888;flex-shrink:0;
-}
-.term-dots{display:flex;gap:4px}
-.term-dots span{width:8px;height:8px;border-radius:50%;border:1px solid var(--cyan-dim)}
-.term-body{
-  flex:1;padding:10px;overflow-y:auto;
-  font-family:'Share Tech Mono',monospace;font-size:13px;line-height:1.6;
-  min-height:0;background:#000;
-  scrollbar-width:thin;scrollbar-color:var(--cyan-dim) transparent;
-}
-.term-body::-webkit-scrollbar{width:4px}
-.term-body::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:2px}
-.term-line{white-space:pre;color:#ffffff;font-family:'Share Tech Mono',monospace}
-.term-line .ok{color:#00ff66;font-weight:bold}
-.term-line .tag{color:#00e5ff}
-.term-line .ts{color:#888}
-.term-line .ticker{color:#fff;font-weight:bold}
-.term-line .qualified{color:#00e5ff}
-.term-line .monitoring{color:#ffaa00}
-.term-line .position{color:#ffaa00}
-.term-line .tp-hit{color:#00ff66}
-.cursor{
-  display:inline-block;width:8px;height:14px;background:#00e5ff;
-  animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.progress-bar{color:#00e5ff}
+.stat-box .label{font-size:8px;color:#888;letter-spacing:0.15em;text-transform:uppercase}
+.stat-box .val{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--cyan-core);margin-top:4px;transition:text-shadow 0.3s}
+.stat-box .val.flash-up{text-shadow:0 0 12px var(--cyan-glow)}
+.stat-box .val.green{color:#00ff66}
+.stat-box .val.red{color:#ff3333}
+.stat-box .val.amber{color:#ffaa00}
+
+/* Zone 2: Radar */
+.radar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:0}
+.radar-label{font-size:9px;color:#888;letter-spacing:0.2em;margin-top:6px}
+
+/* Zone 3: Matrix strip */
+.matrix-wrap{height:70px;overflow:hidden;position:relative}
+
+/* Zone 4: Signal table */
+.sig-table{border-collapse:collapse;width:100%;font-size:11px}
+.sig-table th{font-size:8px;color:#666;letter-spacing:0.1em;text-transform:uppercase;
+  text-align:left;padding:4px 6px;border-bottom:1px solid #0a1020}
+.sig-table td{padding:4px 6px;border-bottom:1px solid #0a102044;transition:opacity 0.5s}
+.sig-table .q{color:#00e5ff}.sig-table .m{color:#ffaa00}.sig-table .g{color:#00ff66}.sig-table .s{color:#ff3333}
 
 /* TILES */
 .tile{
@@ -189,14 +181,30 @@ body::before{
 
 <div class="main">
   <div class="col-left">
-    <div class="terminal hud-frame">
-      <div class="hud-bl">
-        <div class="term-titlebar">
-          <span>NEXUS // SYSTEM TERMINAL</span>
-          <div class="term-dots"><span></span><span></span><span></span></div>
-        </div>
-        <div class="term-body" id="term"></div>
+    <div class="left-panel">
+      <!-- Zone 1: Stats -->
+      <div class="stats-grid">
+        <div class="stat-box"><div class="label">Open Positions</div><div class="val" id="st-open">--</div></div>
+        <div class="stat-box"><div class="label">Today P&amp;L</div><div class="val" id="st-pnl">--</div></div>
+        <div class="stat-box"><div class="label">Signals Today</div><div class="val" id="st-signals">--</div></div>
+        <div class="stat-box"><div class="label">Agent Status</div><div class="val" id="st-agent">--</div></div>
+        <div class="stat-box"><div class="label">Win Rate</div><div class="val" id="st-winrate">--</div></div>
+        <div class="stat-box"><div class="label">Trades Today</div><div class="val" id="st-trades">--</div></div>
       </div>
+      <!-- Zone 2: Radar -->
+      <div class="radar-wrap">
+        <canvas id="radar" width="200" height="200"></canvas>
+        <div class="radar-label">SIGNAL RADAR</div>
+      </div>
+      <!-- Zone 3: Matrix -->
+      <div class="matrix-wrap">
+        <canvas id="matrix" width="800" height="70"></canvas>
+      </div>
+      <!-- Zone 4: Signal table -->
+      <table class="sig-table">
+        <thead><tr><th>Time</th><th>Ticker</th><th>Dir</th><th>Grade</th><th>Status</th></tr></thead>
+        <tbody id="sig-body"></tbody>
+      </table>
     </div>
   </div>
 
@@ -250,174 +258,161 @@ body::before{
 </div>
 
 <script>
-const term = document.getElementById('term');
-const TICKERS = ['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','CRM','SHOP','COIN','HOOD','MSTR','PLTR','DKNG','ABNB','UBER'];
-const DIRS = ['SHORT','LONG'];
-const GRADES = ['A+','A','A','A+','A'];
-const SETUPS = ['hunt_mode','trend_cont','hunt_mode','trend_cont','hunt_mode'];
-const STATUSES = [
-  {text:'QUALIFIED',cls:'qualified'},
-  {text:'MONITORING',cls:'monitoring'},
-  {text:'POSITION_OPEN',cls:'position'},
-  {text:'TP1_HIT \u2713',cls:'tp-hit'},
-  {text:'QUALIFIED',cls:'qualified'},
-  {text:'MONITORING',cls:'monitoring'},
+const TICKERS=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','CRM','SHOP','COIN','HOOD','MSTR','PLTR','DKNG','ABNB','UBER'];
+const DIRS=['SHORT','LONG'];
+const GRADES=['A+','A','A','A+','A'];
+const SIG_STATUSES=[
+  {text:'QUALIFIED',cls:'q'},{text:'MONITORING',cls:'m'},
+  {text:'TP1_HIT',cls:'g'},{text:'STOP_LOSS',cls:'s'},
+  {text:'QUALIFIED',cls:'q'},{text:'MONITORING',cls:'m'},
 ];
+const reducedMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
-let bootDone = false;
-
-function addLine(html) {
-  const div = document.createElement('div');
-  div.className = 'term-line';
-  div.innerHTML = html;
-  term.appendChild(div);
-  term.scrollTop = term.scrollHeight;
+// ── ZONE 1: Stats ────────────────────
+function updateStat(id,val){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const old=el.textContent;
+  el.textContent=val;
+  if(old!==val&&old!=='--'){el.classList.add('flash-up');setTimeout(()=>el.classList.remove('flash-up'),400);}
 }
 
-const bootLines = [
-  {t:'> NEXUS AUTONOMOUS TRADING SYSTEM v2.0',d:0},
-  {t:'> PRAXIUM HOLDINGS \u2014 PROPRIETARY',d:80},
-  {t:'> \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550',d:60},
-  {t:'> [INIT] Loading core modules.....................',ok:true,d:400},
-  {t:'> [INIT] Connecting to Supabase...................',ok:true,d:350},
-  {t:'> [INIT] Tradier quote service....................',ok:true,d:300},
-  {t:'> [INIT] Signal pipeline cache...................',ok:true,d:250},
-  {t:'> [INIT] Paper execution engine..................',ok:true,d:400},
-  {t:'> [INIT] Autonomous agent loop...................',ok:true,d:350},
-  {t:'> [INIT] JWT authentication layer................',ok:true,d:200},
-  {t:'> \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550',d:60},
-  {t:'> [CORE] Intelligence layer online',d:100},
-  {t:'> [EXEC] Scanner running \u2014 98 tickers active',d:100},
-  {t:'> [EXEC] Agent polling every 15s',d:100},
-  {t:'> [TRAD] Portfolio monitor active',d:100},
-  {t:'> \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550',d:60},
-  {t:'> ALL SYSTEMS NOMINAL',d:200},
-  {t:'> NEXUS IS LIVE',d:200},
-  {t:'progress',d:0},
-  {t:'> \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550',d:60},
-];
+// ── ZONE 2: Radar ────────────────────
+const radarC=document.getElementById('radar');
+const rCtx=radarC?radarC.getContext('2d'):null;
+let radarAngle=0;
+const radarDots=[];
 
-let cursorEl = null;
-function showCursor() {
-  if (cursorEl) cursorEl.remove();
-  cursorEl = document.createElement('span');
-  cursorEl.className = 'cursor';
-  term.appendChild(cursorEl);
-  term.scrollTop = term.scrollHeight;
-}
-function hideCursor() { if (cursorEl) cursorEl.remove(); }
-
-async function typeLine(text, charDelay) {
-  hideCursor();
-  const div = document.createElement('div');
-  div.className = 'term-line';
-  term.appendChild(div);
-  for (let i = 0; i < text.length; i++) {
-    div.textContent += text[i];
-    term.scrollTop = term.scrollHeight;
-    if (charDelay > 0) await sleep(charDelay);
+function drawRadar(){
+  if(!rCtx||reducedMotion)return;
+  const w=200,h=200,cx=100,cy=100,r=90;
+  rCtx.clearRect(0,0,w,h);
+  // Rings
+  [0.33,0.66,1].forEach(s=>{
+    rCtx.beginPath();rCtx.arc(cx,cy,r*s,0,Math.PI*2);
+    rCtx.strokeStyle='#00b8cc33';rCtx.lineWidth=1;rCtx.stroke();
+  });
+  // Cross
+  rCtx.strokeStyle='#00b8cc22';rCtx.beginPath();
+  rCtx.moveTo(cx,cy-r);rCtx.lineTo(cx,cy+r);rCtx.moveTo(cx-r,cy);rCtx.lineTo(cx+r,cy);rCtx.stroke();
+  // Sweep
+  const grad=rCtx.createConicalGradient?null:null;
+  rCtx.save();rCtx.translate(cx,cy);rCtx.rotate(radarAngle);
+  rCtx.beginPath();rCtx.moveTo(0,0);rCtx.lineTo(r,0);
+  rCtx.strokeStyle='#00e5ff';rCtx.lineWidth=2;rCtx.stroke();
+  // Trail
+  for(let i=1;i<=20;i++){
+    rCtx.rotate(-0.03);rCtx.beginPath();rCtx.moveTo(0,0);rCtx.lineTo(r,0);
+    rCtx.strokeStyle=`rgba(0,229,255,${0.3-i*0.015})`;rCtx.lineWidth=1;rCtx.stroke();
   }
-  const raw = div.textContent;
-  div.innerHTML = raw
-    .replace(/\[(INIT|CORE|EXEC|TRAD)\]/g, '<span class="tag">[$1]</span>')
-    .replace(/^(>)/, '<span class="tag">&gt;</span>');
-  return div;
+  rCtx.restore();
+  radarAngle+=0.03;
+  // Dots
+  const now=Date.now();
+  if(Math.random()<0.05)radarDots.push({x:cx+(Math.random()-0.5)*r*1.6,y:cy+(Math.random()-0.5)*r*1.6,t:now});
+  radarDots.forEach((d,i)=>{
+    const age=(now-d.t)/1000;
+    if(age>3.5){radarDots.splice(i,1);return;}
+    const op=1-age/3.5;
+    rCtx.beginPath();rCtx.arc(d.x,d.y,3,0,Math.PI*2);
+    rCtx.fillStyle=`rgba(0,229,255,${op})`;rCtx.fill();
+  });
+  // Center
+  rCtx.beginPath();rCtx.arc(cx,cy,3,0,Math.PI*2);
+  const pulse=0.5+0.5*Math.sin(now/300);
+  rCtx.fillStyle=`rgba(0,229,255,${pulse})`;rCtx.fill();
+  requestAnimationFrame(drawRadar);
 }
 
-async function typeLineOk(text) {
-  const div = await typeLine(text, 8);
-  await sleep(200 + Math.random() * 300);
-  const colored = div.innerHTML;
-  div.innerHTML = colored + '<span class="ok"> OK</span>';
-  term.scrollTop = term.scrollHeight;
+// ── ZONE 3: Matrix ───────────────────
+const matC=document.getElementById('matrix');
+const mCtx=matC?matC.getContext('2d'):null;
+const matChars='01234567890ABCDEFabcdefTSLAAMDNVDASPYQQQMETAGOOG';
+let matCols=[];
+
+function initMatrix(){
+  if(!mCtx||reducedMotion)return;
+  matC.width=matC.parentElement.offsetWidth;
+  const cols=Math.floor(matC.width/14);
+  matCols=Array.from({length:cols},()=>Math.random()*matC.height);
+}
+function drawMatrix(){
+  if(!mCtx||reducedMotion)return;
+  mCtx.fillStyle='rgba(8,12,18,0.15)';
+  mCtx.fillRect(0,0,matC.width,matC.height);
+  mCtx.font='12px "Share Tech Mono"';
+  mCtx.fillStyle='rgba(0,229,255,0.3)';
+  matCols.forEach((y,i)=>{
+    const ch=matChars[Math.floor(Math.random()*matChars.length)];
+    mCtx.fillText(ch,i*14,y);
+    matCols[i]=y>matC.height&&Math.random()>0.98?0:y+14;
+  });
+  requestAnimationFrame(drawMatrix);
 }
 
-async function showProgress() {
-  const div = document.createElement('div');
-  div.className = 'term-line progress-bar';
-  term.appendChild(div);
-  const full = '\u2588';
-  const empty = '\u2591';
-  const total = 28;
-  for (let i = 0; i <= total; i++) {
-    const pct = Math.round(i / total * 100);
-    div.textContent = '> ' + full.repeat(i) + empty.repeat(total - i) + ' ' + pct + '%';
-    term.scrollTop = term.scrollHeight;
-    await sleep(40);
-  }
+// ── ZONE 4: Signal table ─────────────
+const sigBody=document.getElementById('sig-body');
+function addSignalRow(){
+  const now=new Date();
+  const ts=now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const t=TICKERS[Math.floor(Math.random()*TICKERS.length)];
+  const d=DIRS[Math.floor(Math.random()*DIRS.length)];
+  const g=GRADES[Math.floor(Math.random()*GRADES.length)];
+  const s=SIG_STATUSES[Math.floor(Math.random()*SIG_STATUSES.length)];
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td style="color:#888">${ts}</td><td style="color:#fff;font-weight:bold">${t}</td><td>${d}</td><td>${g}</td><td class="${s.cls}">${s.text}</td>`;
+  if(sigBody.firstChild)sigBody.insertBefore(tr,sigBody.firstChild);
+  else sigBody.appendChild(tr);
+  while(sigBody.children.length>8)sigBody.lastChild.remove();
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-async function runBoot() {
-  for (const line of bootLines) {
-    showCursor();
-    await sleep(line.d || 60);
-    hideCursor();
-    if (line.t === 'progress') {
-      await showProgress();
-    } else if (line.ok) {
-      await typeLineOk(line.t);
-    } else {
-      await typeLine(line.t, 12);
-    }
-  }
-  await sleep(500);
-  addLine('');
-  addLine('<span style="color:#00e5ff">[ LIVE SIGNAL FEED ]</span>');
-  addLine('');
-  bootDone = true;
-  startFeed();
-}
-
-function startFeed() {
-  setInterval(() => {
-    if (!bootDone) return;
-    const now = new Date();
-    const ts = now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    const ticker = TICKERS[Math.floor(Math.random()*TICKERS.length)];
-    const dir = DIRS[Math.floor(Math.random()*DIRS.length)];
-    const grade = GRADES[Math.floor(Math.random()*GRADES.length)];
-    const score = 70 + Math.floor(Math.random()*25);
-    const setup = SETUPS[Math.floor(Math.random()*SETUPS.length)];
-    const status = STATUSES[Math.floor(Math.random()*STATUSES.length)];
-
-    const pad = (s,n) => s.padEnd(n);
-    const html = `<span class="ts">[${ts}]</span> <span class="ticker">${pad(ticker,6)}</span>${pad(dir,7)}${pad(grade,4)}${String(score).padStart(3)} ${pad(setup,16)}<span class="${status.cls}">${status.text}</span>`;
-    addLine(html);
-
-    const lines = term.querySelectorAll('.term-line');
-    if (lines.length > 50) lines[0].remove();
-  }, 2000 + Math.random() * 1500);
-}
-
-async function checkStatus() {
-  try {
-    const r = await fetch('/api/service-status');
-    const data = await r.json();
-    let up = 0, total = 0;
-    for (const [name, status] of Object.entries(data)) {
+// ── SERVICE STATUS ───────────────────
+async function checkStatus(){
+  try{
+    const r=await fetch('/api/service-status');
+    const data=await r.json();
+    let up=0,total=0;
+    for(const[name,status]of Object.entries(data)){
       total++;
-      const dot = document.getElementById('dot-' + name);
-      if (dot) dot.className = 'tile-dot ' + (status === 'ok' ? 'ok' : 'down');
-      if (status === 'ok') up++;
+      const dot=document.getElementById('dot-'+name);
+      if(dot)dot.className='tile-dot '+(status==='ok'?'ok':'down');
+      if(status==='ok')up++;
     }
-    document.getElementById('svc-count').textContent = up + '/' + total + ' ONLINE';
-    document.getElementById('last-check').textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
-  } catch(e) {
-    document.getElementById('svc-count').textContent = 'ERROR';
+    document.getElementById('svc-count').textContent=up+'/'+total+' ONLINE';
+    document.getElementById('last-check').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});
+    // Update stats (simulated from service count for now)
+    updateStat('st-open',String(Math.floor(Math.random()*40+60)));
+    updateStat('st-signals',String(Math.floor(Math.random()*20+30)));
+    updateStat('st-trades',String(Math.floor(Math.random()*10+5)));
+    const pnl=Math.floor(Math.random()*2000-500);
+    const pnlEl=document.getElementById('st-pnl');
+    pnlEl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl);
+    pnlEl.className='val '+(pnl>=0?'green':'red');
+    updateStat('st-winrate',Math.floor(Math.random()*30+50)+'%');
+    const agEl=document.getElementById('st-agent');
+    agEl.textContent=up>=2?'RUNNING':'PAUSED';
+    agEl.className='val '+(up>=2?'green':'amber');
+  }catch(e){
+    document.getElementById('svc-count').textContent='ERROR';
   }
 }
 
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ET';
+function updateClock(){
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';
 }
 
-runBoot();
+// ── INIT ─────────────────────────────
 checkStatus();
-setInterval(checkStatus, 30000);
-setInterval(updateClock, 1000);
+setInterval(checkStatus,15000);
+setInterval(updateClock,1000);
 updateClock();
+if(!reducedMotion){
+  drawRadar();
+  initMatrix();drawMatrix();
+  window.addEventListener('resize',initMatrix);
+  setInterval(addSignalRow,2500);
+  addSignalRow();addSignalRow();addSignalRow();
+}
 </script>
 </body>
 </html>

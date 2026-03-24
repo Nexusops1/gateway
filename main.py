@@ -45,7 +45,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'"
         return response
 
 
@@ -91,6 +91,10 @@ def _verify_token(request: Request) -> dict:
 def require_auth(request: Request):
     payload = _verify_token(request)
     if not payload:
+        accept = request.headers.get("Accept", "")
+        if "text/html" in accept:
+            raise HTTPException(status_code=303, detail="redirect",
+                                headers={"Location": "/unauthorized"})
         raise HTTPException(status_code=401, detail="unauthorized")
     return payload
 
@@ -132,6 +136,11 @@ def login(response: Response, username: str = Form(...), password: str = Form(..
         max_age=JWT_EXPIRY,
     )
     return resp
+
+
+@app.get("/unauthorized", response_class=HTMLResponse)
+def unauthorized_page():
+    return FileResponse(str(static_dir / "unauthorized.html"))
 
 
 @app.get("/auth/logout")
