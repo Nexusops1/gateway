@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060a10; --surface: #0c1018; --elevated: #101620;
+    --border: #1a2436; --text: #c8d6e5; --bright: #e8f0fa;
+    --dim: #5a6e84; --muted: #3a4a5c;
+    --cyan: #00e5ff; --green: #00e676; --red: #ff1744; --amber: #ffb300;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.012) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.012) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 0 20px; border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .logo { font-size: 14px; font-weight: 600; color: var(--cyan); letter-spacing: 3px; }
+  .logo span { color: var(--dim); font-weight: 400; }
+  .header-right { display: flex; align-items: center; gap: 16px; font-size: 11px; color: var(--dim); }
+  .header-right a {
+    color: var(--dim); text-decoration: none; border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px; font-size: 10px; letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .header-right a:hover { color: var(--red); border-color: var(--red); }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-top: 32px; }
+
+  .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 24px; text-decoration: none; color: inherit;
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+    display: block; cursor: pointer;
+  }
+  .tile:hover { border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,229,255,0.06); transform: translateY(-2px); }
+
+  .tile-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .tile-name { font-size: 13px; font-weight: 600; color: var(--bright); letter-spacing: 1px; }
+  .tile-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .tile-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .tile-dot.down { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .tile-dot.loading { background: var(--muted); }
+
+  .tile-desc { font-size: 11px; color: var(--dim); line-height: 1.5; margin-bottom: 12px; }
+  .tile-url { font-size: 10px; color: var(--muted); }
+
+  .status-bar {
+    margin-top: 32px; padding: 12px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--dim);
+  }
+  .status-bar .val { color: var(--text); font-weight: 500; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+  :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="logo">NEXUS COMMAND CENTER <span>// GATEWAY</span></div>
+    <div class="header-right">
+      <span>admin</span>
+      <span id="clock"></span>
+      <a href="/auth/logout">LOGOUT</a>
+    </div>
+  </header>
+
+  <div class="tiles">
+    <a class="tile" href="https://core.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-header">
+        <div class="tile-name">CORE INTELLIGENCE</div>
+        <div class="tile-dot loading" id="dot-core"></div>
+      </div>
+      <div class="tile-desc">Signal pipeline, judgment layer, market data aggregation. The brain of NEXUS.</div>
+      <div class="tile-url">core.praxiumholdings.com</div>
+    </a>
+    <a class="tile" href="https://execution.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-header">
+        <div class="tile-name">EXECUTION</div>
+        <div class="tile-dot loading" id="dot-execution"></div>
+      </div>
+      <div class="tile-desc">Scanner, signal generation, paper trading agent, options recommendation engine.</div>
+      <div class="tile-url">execution.praxiumholdings.com</div>
+    </a>
+    <a class="tile" href="https://trading.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-header">
+        <div class="tile-name">TRADING</div>
+        <div class="tile-dot loading" id="dot-trading"></div>
+      </div>
+      <div class="tile-desc">Portfolio monitor, open positions, P&L tracking, agent controls.</div>
+      <div class="tile-url">trading.praxiumholdings.com</div>
+    </a>
+  </div>
+
+  <div class="status-bar">
+    <span>Last check: <span class="val" id="last-check">--</span></span>
+    <span>Services: <span class="val" id="svc-summary">--</span></span>
+  </div>
+</div>
+
+<script>
+async function checkStatus() {
+  try {
+    const r = await fetch('/api/service-status');
+    const data = await r.json();
+    let up = 0, total = 0;
+    for (const [name, status] of Object.entries(data)) {
+      total++;
+      const dot = document.getElementById('dot-' + name);
+      if (dot) {
+        dot.className = 'tile-dot ' + (status === 'ok' ? 'ok' : 'down');
+      }
+      if (status === 'ok') up++;
+    }
+    document.getElementById('svc-summary').textContent = up + '/' + total + ' online';
+    document.getElementById('last-check').textContent = new Date().toLocaleTimeString();
+  } catch(e) {
+    document.getElementById('svc-summary').textContent = 'error';
+  }
+}
+function updateClock() {
+  const now = new Date();
+  const et = now.toLocaleTimeString('en-US', {timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', second: '2-digit'});
+  document.getElementById('clock').textContent = et + ' ET';
+}
+checkStatus();
+setInterval(checkStatus, 30000);
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>
