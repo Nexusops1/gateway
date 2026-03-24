@@ -6,412 +6,435 @@
 <title>NEXUS // COMMAND CENTER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg-void:#000;--bg-deep:#050810;--bg-surface:#080c12;
-  --cyan-core:#00e5ff;--cyan-bright:#00e5ff;--cyan-dim:#00b8cc;
-  --cyan-glow:#00e5ff66;--cyan-faint:#00e5ff15;
-  --white:#fff;--white-dim:#ccc;--white-muted:#666;--dark-cyan:#003344;
+  --void:#000;--deep:#050810;--surface:#080c12;--surface-2:#0d1520;
+  --cyan:#00e5ff;--cyan-b:#33eeff;--cyan-d:#00b8cc;
+  --glow:rgba(0,229,255,0.4);--faint:rgba(0,229,255,0.08);
+  --green:#00ff88;--amber:#ffaa00;--red:#ff3333;
+  --white:#fff;--grey:#888;--grey-d:#444;
+  --ease:cubic-bezier(0.16,1,0.3,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:var(--bg-void);color:var(--white-dim);
-  font-family:'Share Tech Mono',monospace;
-  min-height:100vh;overflow-x:hidden;letter-spacing:0.15em;
-}
-body::after{
-  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);
-}
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(circle,#00e5ff08 1px,transparent 1px);
-  background-size:40px 40px;
-}
-.hud-frame{position:relative}
-.hud-frame::before,.hud-frame::after{
-  content:'';position:absolute;width:20px;height:20px;
-  border-color:var(--cyan-dim);border-style:solid;pointer-events:none;
-  animation:hudDraw 0.6s ease-out both;
-}
-.hud-frame::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-.hud-frame::after{top:-1px;right:-1px;border-width:2px 2px 0 0}
-.hud-bl::before,.hud-bl::after{
-  content:'';position:absolute;width:20px;height:20px;
-  border-color:var(--cyan-dim);border-style:solid;pointer-events:none;
-  animation:hudDraw 0.6s ease-out 0.15s both;
-}
-.hud-bl::before{bottom:-1px;left:-1px;border-width:0 0 2px 2px}
-.hud-bl::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
-@keyframes hudDraw{from{width:0;height:0;opacity:0}to{width:20px;height:20px;opacity:1}}
+body{background:var(--void);color:var(--grey);font-family:'Rajdhani',sans-serif;
+  min-height:100vh;overflow-x:hidden;letter-spacing:0.1em;
+  background:radial-gradient(ellipse at center,#0a101a 0%,#000 70%)}
+body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px)}
 
-@keyframes titleGlitch{
-  0%,97%,100%{transform:none;text-shadow:0 0 10px var(--cyan-glow),0 0 30px #00e5ff33}
-  97.5%{transform:translateX(-3px) skewX(-1deg);text-shadow:3px 0 #00e5ff,-3px 0 #ff00008,0 0 10px var(--cyan-glow)}
-  98%{transform:translateX(2px) skewX(0.5deg);text-shadow:-2px 0 #00e5ff,2px 0 #ff00008}
-  98.5%{transform:none;text-shadow:0 0 10px var(--cyan-glow)}
-}
+/* ── HEADER ──────────────────────── */
+.hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;background:var(--deep);border-bottom:1px solid var(--cyan-d);
+  box-shadow:0 1px 20px rgba(0,229,255,0.15);position:relative;z-index:10;
+  opacity:0;animation:fadeIn .5s var(--ease) forwards}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.hdr-nexus{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;
+  color:var(--cyan);letter-spacing:0.2em;text-shadow:0 0 12px var(--glow)}
+.hdr-sub{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey);font-weight:500}
+.hdr-right{display:flex;align-items:center;gap:14px;font-size:11px}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);animation:dotPulse 3s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
+.logout{color:var(--cyan-d);text-decoration:none;border:1px solid var(--cyan-d);
+  padding:4px 12px;font-size:10px;letter-spacing:0.15em;font-family:'Rajdhani',sans-serif;
+  font-weight:600;background:transparent;cursor:pointer;transition:all .2s var(--ease)}
+.logout:hover{background:rgba(0,229,255,0.1);border-color:var(--cyan);color:var(--cyan)}
 
-/* HEADER */
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 24px;background:var(--bg-deep);
-  border-bottom:1px solid var(--cyan-dim);
-  box-shadow:0 2px 20px #00e5ff44;
-  position:relative;z-index:10;flex-wrap:wrap;gap:8px;
-}
-.header-left{display:flex;align-items:center;gap:16px}
-.hdr-nexus{
-  font-family:'Orbitron',sans-serif;font-size:16px;font-weight:800;
-  color:var(--cyan-core);letter-spacing:0.2em;
-  animation:titleGlitch 6s infinite;
-  text-shadow:0 0 10px var(--cyan-glow);
-}
-.hdr-sub{font-size:10px;color:#888;letter-spacing:0.2em}
-.header-right{display:flex;align-items:center;gap:14px;font-size:10px;color:#888}
-.online-dot{
-  width:6px;height:6px;border-radius:50%;background:var(--cyan-core);
-  box-shadow:0 0 6px var(--cyan-core);animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
-.logout-btn{
-  color:var(--cyan-dim);text-decoration:none;border:1px solid var(--cyan-dim);
-  padding:4px 10px;font-size:9px;letter-spacing:0.15em;font-family:inherit;
-  background:transparent;cursor:pointer;transition:all 0.2s;
-}
-.logout-btn:hover{color:var(--cyan-core);border-color:var(--cyan-core);box-shadow:0 0 8px var(--cyan-glow)}
-.ticker-bar{
-  width:100%;overflow:hidden;height:14px;
-  border-top:1px solid #0a1020;font-size:9px;color:var(--cyan-dim);
-}
-.ticker-inner{display:inline-block;white-space:nowrap;animation:tickerScroll 30s linear infinite}
-@keyframes tickerScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+/* ── LAYOUT ──────────────────────── */
+.wrap{display:flex;gap:16px;padding:16px 24px;min-height:calc(100vh - 52px);position:relative;z-index:2}
+.col-l{flex:0 0 58%;display:flex;flex-direction:column;gap:14px}
+.col-r{flex:1;display:flex;flex-direction:column;gap:12px}
 
-/* LAYOUT */
-.hud-bl{position:relative}
-.main{display:flex;gap:16px;padding:16px 24px;height:calc(100vh - 100px);position:relative;z-index:2}
-.col-left{flex:6;min-width:0;display:flex;flex-direction:column}
-.col-right{flex:4;display:flex;flex-direction:column;gap:14px}
+/* ── STAT BOXES ──────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
+  opacity:0;animation:slideUp .4s var(--ease) .2s forwards}
+.sbox{background:var(--surface-2);border:1px solid rgba(0,184,204,0.2);
+  padding:10px 12px;text-align:center;
+  clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 3px);
+  box-shadow:0 0 6px rgba(0,229,255,0.05)}
+.sbox .lb{font-size:9px;color:var(--grey-d);letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+.sbox .vl{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;
+  color:var(--cyan);margin-top:4px;text-shadow:0 0 8px rgba(0,229,255,0.2);
+  transition:text-shadow .3s}
+.sbox .vl.flash{text-shadow:0 0 16px var(--glow)}
+.sbox .vl.g{color:var(--green)}.sbox .vl.r{color:var(--red)}.sbox .vl.a{color:var(--amber)}
 
-/* LEFT PANEL */
-.left-panel{display:flex;flex-direction:column;gap:12px;height:100%}
+/* ── SONAR ───────────────────────── */
+.sonar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;min-height:0;
+  opacity:0;animation:fadeIn .5s var(--ease) .4s forwards}
+.sonar-canvas{display:block;max-width:100%}
+.sonar-labels{display:flex;justify-content:space-between;width:100%;padding:6px 4px 0;font-size:9px}
+.sonar-labels span{font-family:'Share Tech Mono',monospace}
+.sonar-labels .ll{color:var(--grey-d)}.sonar-labels .lc{color:var(--cyan-d)}
+.sonar-labels .lr{color:var(--grey-d)}
 
-/* Zone 1: Stats Grid */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat-box{
-  border:1px solid var(--cyan-dim);background:#000;padding:10px;text-align:center;
-  box-shadow:inset 0 0 6px #00e5ff08;
-}
-.stat-box .label{font-size:8px;color:#888;letter-spacing:0.15em;text-transform:uppercase}
-.stat-box .val{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--cyan-core);margin-top:4px;transition:text-shadow 0.3s}
-.stat-box .val.flash-up{text-shadow:0 0 12px var(--cyan-glow)}
-.stat-box .val.green{color:#00ff66}
-.stat-box .val.red{color:#ff3333}
-.stat-box .val.amber{color:#ffaa00}
+/* ── TILES ───────────────────────── */
+.tile{background:var(--surface-2);background:linear-gradient(180deg,var(--surface-2),var(--surface));
+  border:1px solid rgba(0,184,204,0.2);border-left:3px solid var(--cyan);
+  padding:16px 16px 16px 18px;text-decoration:none;color:inherit;display:block;
+  transition:all .3s var(--ease);cursor:pointer;
+  opacity:0;animation:slideLeft .4s var(--ease) forwards}
+.tile:nth-child(1){animation-delay:.6s}.tile:nth-child(3){animation-delay:.7s}.tile:nth-child(5){animation-delay:.8s}
+.tile:hover{background:var(--surface-2);border-color:var(--cyan);
+  box-shadow:0 0 12px rgba(0,229,255,0.1)}
+.tile:hover .tile-link{transform:translateX(4px);color:var(--cyan);text-shadow:0 0 6px var(--glow)}
+.tile-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tile-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;
+  color:var(--cyan);letter-spacing:0.1em;text-shadow:0 0 6px rgba(0,229,255,0.15)}
+.tile-dot{width:8px;height:8px;border-radius:50%;background:var(--grey-d);flex-shrink:0}
+.tile-dot.ok{background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:dotPulse 3s ease-in-out infinite}
+.tile-dot.down{background:var(--red);box-shadow:0 0 4px var(--red)}
+.tile-desc{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:8px;font-weight:500}
+.tile-bot{display:flex;align-items:center;justify-content:space-between;font-size:10px}
+.tile-url{font-family:'Share Tech Mono',monospace;color:var(--grey-d)}
+.tile-link{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:11px;color:var(--cyan-d);
+  text-decoration:none;transition:all .2s var(--ease)}
+.tile-sep{height:1px;background:linear-gradient(90deg,transparent 10%,rgba(0,184,204,0.15) 50%,transparent 90%);
+  position:relative;margin:2px 0}
+.tile-sep::after{content:'\u25C6';position:absolute;left:50%;top:-5px;transform:translateX(-50%);
+  font-size:8px;color:rgba(0,184,204,0.25)}
 
-/* Zone 2: Radar */
-.radar-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:0}
-.radar-label{font-size:9px;color:#888;letter-spacing:0.2em;margin-top:6px}
+/* ── STATUS BAR ──────────────────── */
+.sbar{padding:8px 14px;background:var(--surface);border-top:1px solid rgba(0,184,204,0.15);
+  display:flex;align-items:center;justify-content:space-between;font-size:10px}
+.sbar .v{color:var(--cyan);font-family:'Share Tech Mono',monospace}
 
-/* Zone 3: Matrix strip */
-.matrix-wrap{height:70px;overflow:hidden;position:relative}
+/* ── INTEL FEED ──────────────────── */
+.intel{background:var(--surface);border:1px solid rgba(0,184,204,0.15);overflow:hidden;height:80px;position:relative;flex-shrink:0}
+.intel-hdr{display:flex;align-items:center;gap:6px;padding:6px 12px;
+  border-bottom:1px solid rgba(0,184,204,0.1);font-family:'Orbitron',sans-serif;
+  font-size:9px;color:var(--cyan-d);letter-spacing:0.15em}
+.intel-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan-d);animation:dotPulse 2s ease-in-out infinite}
+.intel-scroll{padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;
+  color:var(--grey);line-height:1.8;animation:scrollUp 20s linear infinite}
+@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-100%)}}
 
-/* Zone 4: Signal table */
-.sig-table{border-collapse:collapse;width:100%;font-size:11px}
-.sig-table th{font-size:8px;color:#666;letter-spacing:0.1em;text-transform:uppercase;
-  text-align:left;padding:4px 6px;border-bottom:1px solid #0a1020}
-.sig-table td{padding:4px 6px;border-bottom:1px solid #0a102044;transition:opacity 0.5s}
-.sig-table .q{color:#00e5ff}.sig-table .m{color:#ffaa00}.sig-table .g{color:#00ff66}.sig-table .s{color:#ff3333}
+/* ── SIGNAL TABLE ────────────────── */
+.sig-panel{margin:0 24px 20px;border:1px solid rgba(0,184,204,0.15);background:var(--surface);
+  opacity:0;animation:fadeIn .4s var(--ease) .9s forwards}
+.sig-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--cyan);
+  letter-spacing:0.15em;padding:10px 14px;border-bottom:1px solid rgba(0,184,204,0.1)}
+.sig-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sig-tbl th{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;
+  color:var(--grey-d);letter-spacing:0.2em;text-transform:uppercase;
+  text-align:left;padding:6px 14px;border-bottom:1px solid rgba(0,229,255,0.06)}
+.sig-tbl td{font-family:'Share Tech Mono',monospace;padding:6px 14px;
+  border-bottom:1px solid rgba(0,229,255,0.04)}
+.sig-tbl tr:nth-child(even) td{background:rgba(0,229,255,0.015)}
+.sig-tbl tr{animation:rowIn .3s var(--ease)}
+.q{color:var(--cyan)}.m{color:var(--amber)}.gn{color:var(--green)}.rd{color:var(--red)}
 
-/* TILES */
-.tile{
-  background:var(--bg-deep);border:1px solid var(--cyan-dim);
-  box-shadow:0 0 8px var(--cyan-glow),0 0 20px #00e5ff22,inset 0 0 6px #00e5ff08;
-  padding:18px;text-decoration:none;color:inherit;display:block;
-  clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
-  transition:all 0.3s;cursor:pointer;
-}
-.tile:hover{
-  border-color:var(--cyan-core);background:var(--bg-surface);
-  box-shadow:0 0 15px var(--cyan-glow),0 0 40px #00e5ff33,inset 0 0 10px #00e5ff11;
-}
-.tile-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.tile-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--cyan-bright);letter-spacing:0.1em}
-.tile-dot{width:8px;height:8px;border-radius:50%;background:var(--dark-cyan);flex-shrink:0}
-.tile-dot.ok{background:var(--cyan-core);box-shadow:0 0 8px var(--cyan-core);animation:pulse 2s ease-in-out infinite}
-.tile-dot.down{background:#003344}
-.tile-desc{font-size:10px;color:#aaa;line-height:1.5;margin-bottom:10px}
-.tile-bottom{display:flex;align-items:center;justify-content:space-between;font-size:9px}
-.tile-url{color:#888}
-.tile-link{color:var(--cyan-dim);text-decoration:none;transition:all 0.2s}
-.tile-link:hover{color:var(--cyan-core);text-shadow:0 0 6px var(--cyan-glow)}
-.tile-divider{height:1px;background:linear-gradient(90deg,transparent,var(--cyan-dim),transparent);margin:0}
+/* ── ANIMATIONS ──────────────────── */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
 
-.status-bar{
-  padding:10px 18px;border:1px solid var(--cyan-dim);background:var(--bg-deep);
-  box-shadow:0 -2px 10px #00e5ff22;
-  display:flex;align-items:center;justify-content:space-between;
-  font-size:10px;color:#888;
-  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%,0 8px);
-}
-.status-bar .val{color:var(--cyan-bright)}
-
-@media(max-width:768px){.main{flex-direction:column;height:auto}.col-left{min-height:400px}}
+/* ── RESPONSIVE ──────────────────── */
+@media(max-width:900px){.wrap{flex-direction:column}.col-l,.col-r{flex:auto}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-:focus-visible{outline:2px solid var(--cyan-core);outline-offset:2px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left">
     <span class="hdr-nexus">NEXUS</span>
     <span class="hdr-sub">COMMAND CENTER // GATEWAY</span>
   </div>
-  <div class="header-right">
+  <div class="hdr-right">
     <span class="online-dot"></span>
-    <span style="color:var(--cyan-bright)">ONLINE</span>
+    <span style="color:var(--cyan)">ONLINE</span>
     <span>NexusOps</span>
-    <span id="clock"></span>
-    <a href="/auth/logout" class="logout-btn">LOGOUT</a>
+    <span id="clock" style="font-family:'Share Tech Mono',monospace;color:var(--grey-d)"></span>
+    <a href="/auth/logout" class="logout">LOGOUT</a>
+  </div>
+</header>
+
+<!-- MAIN -->
+<div class="wrap">
+  <!-- LEFT -->
+  <div class="col-l">
+    <div class="stats">
+      <div class="sbox"><div class="lb">Open Positions</div><div class="vl" id="st-open">--</div></div>
+      <div class="sbox"><div class="lb">Today P&amp;L</div><div class="vl" id="st-pnl">--</div></div>
+      <div class="sbox"><div class="lb">Signals Today</div><div class="vl" id="st-sig">--</div></div>
+      <div class="sbox"><div class="lb">Agent Status</div><div class="vl" id="st-agent">--</div></div>
+      <div class="sbox"><div class="lb">Win Rate</div><div class="vl" id="st-wr">--</div></div>
+      <div class="sbox"><div class="lb">Trades Today</div><div class="vl" id="st-trd">--</div></div>
+    </div>
+    <div class="sonar-wrap">
+      <canvas id="sonar" class="sonar-canvas"></canvas>
+      <div class="sonar-labels">
+        <span class="ll">SIGNAL ACQUISITION SYSTEM</span>
+        <span class="lc" id="tracking-label">TRACKING 0 SIGNALS</span>
+        <span class="lr">PRAXIUM HOLDINGS // NEXUS LABS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col-r">
+    <a class="tile" href="https://core.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-top"><div class="tile-name">CORE INTELLIGENCE</div><div class="tile-dot" id="dot-core"></div></div>
+      <div class="tile-desc">Signal pipeline, judgment layer, market data aggregation. The brain of NEXUS.</div>
+      <div class="tile-bot"><span class="tile-url">core.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
+    </a>
+    <div class="tile-sep"></div>
+    <a class="tile" href="https://execution.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-top"><div class="tile-name">EXECUTION</div><div class="tile-dot" id="dot-execution"></div></div>
+      <div class="tile-desc">Scanner, options engine, paper trading agent, autonomous signal execution.</div>
+      <div class="tile-bot"><span class="tile-url">execution.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
+    </a>
+    <div class="tile-sep"></div>
+    <a class="tile" href="https://trading.praxiumholdings.com" target="_blank" rel="noopener">
+      <div class="tile-top"><div class="tile-name">TRADING</div><div class="tile-dot" id="dot-trading"></div></div>
+      <div class="tile-desc">Portfolio monitor, open positions, P&L tracking, agent controls.</div>
+      <div class="tile-bot"><span class="tile-url">trading.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
+    </a>
+
+    <div class="sbar">
+      <span>LAST CHECK <span class="v" id="last-check">--</span></span>
+      <span>SERVICES <span class="v" id="svc-count">--</span></span>
+    </div>
+
+    <div class="intel">
+      <div class="intel-hdr"><span class="intel-dot"></span> INTEL FEED</div>
+      <div style="overflow:hidden;height:52px">
+        <div class="intel-scroll">
+          NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
+          LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
+          PAPER EXECUTION ENGINE LIVE<br>
+          ALL SYSTEMS OPERATIONAL<br>
+          PRAXIUM HOLDINGS // PROPRIETARY<br>
+          NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
+          LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
+          PAPER EXECUTION ENGINE LIVE<br>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-<div class="ticker-bar"><div class="ticker-inner">NEXUS LABS &nbsp;&bull;&nbsp; AUTONOMOUS TRADING SYSTEM &nbsp;&bull;&nbsp; ALL SYSTEMS OPERATIONAL &nbsp;&bull;&nbsp; PRAXIUM HOLDINGS &nbsp;&bull;&nbsp; LAB MODE ACTIVE &nbsp;&bull;&nbsp; SIGNAL PIPELINE RUNNING &nbsp;&bull;&nbsp; PAPER EXECUTION ENGINE LIVE &nbsp;&bull;&nbsp; NEXUS LABS &nbsp;&bull;&nbsp; AUTONOMOUS TRADING SYSTEM &nbsp;&bull;&nbsp; ALL SYSTEMS OPERATIONAL &nbsp;&bull;&nbsp;</div></div>
 
-<div class="main">
-  <div class="col-left">
-    <div class="left-panel">
-      <!-- Zone 1: Stats -->
-      <div class="stats-grid">
-        <div class="stat-box"><div class="label">Open Positions</div><div class="val" id="st-open">--</div></div>
-        <div class="stat-box"><div class="label">Today P&amp;L</div><div class="val" id="st-pnl">--</div></div>
-        <div class="stat-box"><div class="label">Signals Today</div><div class="val" id="st-signals">--</div></div>
-        <div class="stat-box"><div class="label">Agent Status</div><div class="val" id="st-agent">--</div></div>
-        <div class="stat-box"><div class="label">Win Rate</div><div class="val" id="st-winrate">--</div></div>
-        <div class="stat-box"><div class="label">Trades Today</div><div class="val" id="st-trades">--</div></div>
-      </div>
-      <!-- Zone 2: Radar -->
-      <div class="radar-wrap">
-        <canvas id="radar" width="200" height="200"></canvas>
-        <div class="radar-label">SIGNAL RADAR</div>
-      </div>
-      <!-- Zone 3: Matrix -->
-      <div class="matrix-wrap">
-        <canvas id="matrix" width="800" height="70"></canvas>
-      </div>
-      <!-- Zone 4: Signal table -->
-      <table class="sig-table">
-        <thead><tr><th>Time</th><th>Ticker</th><th>Dir</th><th>Grade</th><th>Status</th></tr></thead>
-        <tbody id="sig-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="col-right">
-    <a class="tile hud-frame" href="https://core.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="hud-bl">
-        <div class="tile-top">
-          <div class="tile-name">CORE INTELLIGENCE</div>
-          <div class="tile-dot" id="dot-core"></div>
-        </div>
-        <div class="tile-desc">Signal pipeline, judgment layer, market data. The brain of NEXUS.</div>
-        <div class="tile-bottom">
-          <span class="tile-url">core.praxiumholdings.com</span>
-          <span class="tile-link">CONNECT &rarr;</span>
-        </div>
-      </div>
-    </a>
-    <div class="tile-divider"></div>
-    <a class="tile hud-frame" href="https://execution.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="hud-bl">
-        <div class="tile-top">
-          <div class="tile-name">EXECUTION</div>
-          <div class="tile-dot" id="dot-execution"></div>
-        </div>
-        <div class="tile-desc">Scanner, options engine, paper trading agent, autonomous signal execution.</div>
-        <div class="tile-bottom">
-          <span class="tile-url">execution.praxiumholdings.com</span>
-          <span class="tile-link">CONNECT &rarr;</span>
-        </div>
-      </div>
-    </a>
-    <div class="tile-divider"></div>
-    <a class="tile hud-frame" href="https://trading.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="hud-bl">
-        <div class="tile-top">
-          <div class="tile-name">TRADING</div>
-          <div class="tile-dot" id="dot-trading"></div>
-        </div>
-        <div class="tile-desc">Portfolio monitor, open positions, P&L tracking, agent controls.</div>
-        <div class="tile-bottom">
-          <span class="tile-url">trading.praxiumholdings.com</span>
-          <span class="tile-link">CONNECT &rarr;</span>
-        </div>
-      </div>
-    </a>
-    <div class="status-bar">
-      <span>LAST CHECK: <span class="val" id="last-check">--</span></span>
-      <span>SERVICES: <span class="val" id="svc-count">--</span></span>
-    </div>
-  </div>
+<!-- SIGNAL TABLE -->
+<div class="sig-panel">
+  <div class="sig-title">LIVE SIGNAL INTELLIGENCE</div>
+  <table class="sig-tbl">
+    <thead><tr><th>Time</th><th>Ticker</th><th>Dir</th><th>Grade</th><th>Setup</th><th>Status</th></tr></thead>
+    <tbody id="sig-body"></tbody>
+  </table>
 </div>
 
 <script>
-const TICKERS=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','CRM','SHOP','COIN','HOOD','MSTR','PLTR','DKNG','ABNB','UBER'];
-const DIRS=['SHORT','LONG'];
-const GRADES=['A+','A','A','A+','A'];
-const SIG_STATUSES=[
-  {text:'QUALIFIED',cls:'q'},{text:'MONITORING',cls:'m'},
-  {text:'TP1_HIT',cls:'g'},{text:'STOP_LOSS',cls:'s'},
-  {text:'QUALIFIED',cls:'q'},{text:'MONITORING',cls:'m'},
-];
-const reducedMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+const RM=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+const TK=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','SHOP','COIN','PLTR','DKNG','ABNB'];
+const DR=['SHORT','LONG'];
+const GR=['A+','A','A','A+'];
+const SF=['hunt_mode','trend_cont','reversal','hunt_mode'];
+const ST=[{t:'QUALIFIED',c:'q'},{t:'MONITORING',c:'m'},{t:'TP1_HIT',c:'gn'},{t:'STOP_LOSS',c:'rd'},{t:'QUALIFIED',c:'q'},{t:'MONITORING',c:'m'}];
 
-// ── ZONE 1: Stats ────────────────────
-function updateStat(id,val){
-  const el=document.getElementById(id);
-  if(!el)return;
-  const old=el.textContent;
-  el.textContent=val;
-  if(old!==val&&old!=='--'){el.classList.add('flash-up');setTimeout(()=>el.classList.remove('flash-up'),400);}
+// ── Stats ────────────────────────────
+function uStat(id,v){const e=document.getElementById(id);if(!e)return;const o=e.textContent;e.textContent=v;
+  if(o!==v&&o!=='--'){e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),400);}}
+
+// ── Sonar ────────────────────────────
+const sonarEl=document.getElementById('sonar');
+const ctx=sonarEl?sonarEl.getContext('2d'):null;
+let sw=0; // sweep angle
+const dots=[];
+const DIRS_LABEL=['N','E','S','W'];
+let sonarSize=0,cx=0,cy=0,radius=0;
+
+function initSonar(){
+  if(!sonarEl)return;
+  const w=sonarEl.parentElement.offsetWidth;
+  const h=Math.min(w,420);
+  sonarEl.width=w;sonarEl.height=h;
+  sonarSize=Math.min(w,h);cx=w/2;cy=h/2;radius=(sonarSize/2)-20;
 }
 
-// ── ZONE 2: Radar ────────────────────
-const radarC=document.getElementById('radar');
-const rCtx=radarC?radarC.getContext('2d'):null;
-let radarAngle=0;
-const radarDots=[];
+function drawSonar(){
+  if(!ctx||RM)return;
+  const w=sonarEl.width,h=sonarEl.height;
+  ctx.clearRect(0,0,w,h);
 
-function drawRadar(){
-  if(!rCtx||reducedMotion)return;
-  const w=200,h=200,cx=100,cy=100,r=90;
-  rCtx.clearRect(0,0,w,h);
+  // Background gradient
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,radius+30);
+  bg.addColorStop(0,'#000');bg.addColorStop(0.8,'#020408');bg.addColorStop(1,'#050810');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+
   // Rings
-  [0.33,0.66,1].forEach(s=>{
-    rCtx.beginPath();rCtx.arc(cx,cy,r*s,0,Math.PI*2);
-    rCtx.strokeStyle='#00b8cc33';rCtx.lineWidth=1;rCtx.stroke();
-  });
-  // Cross
-  rCtx.strokeStyle='#00b8cc22';rCtx.beginPath();
-  rCtx.moveTo(cx,cy-r);rCtx.lineTo(cx,cy+r);rCtx.moveTo(cx-r,cy);rCtx.lineTo(cx+r,cy);rCtx.stroke();
-  // Sweep
-  const grad=rCtx.createConicalGradient?null:null;
-  rCtx.save();rCtx.translate(cx,cy);rCtx.rotate(radarAngle);
-  rCtx.beginPath();rCtx.moveTo(0,0);rCtx.lineTo(r,0);
-  rCtx.strokeStyle='#00e5ff';rCtx.lineWidth=2;rCtx.stroke();
-  // Trail
-  for(let i=1;i<=20;i++){
-    rCtx.rotate(-0.03);rCtx.beginPath();rCtx.moveTo(0,0);rCtx.lineTo(r,0);
-    rCtx.strokeStyle=`rgba(0,229,255,${0.3-i*0.015})`;rCtx.lineWidth=1;rCtx.stroke();
+  for(let i=1;i<=4;i++){
+    ctx.beginPath();ctx.arc(cx,cy,radius*i/4,0,Math.PI*2);
+    ctx.strokeStyle='rgba(0,184,204,0.12)';ctx.lineWidth=1;ctx.stroke();
+    // Ring labels
+    ctx.font='9px "Share Tech Mono"';ctx.fillStyle='rgba(68,68,68,0.6)';
+    ctx.fillText((i*25)+'km',cx+radius*i/4+4,cy+3);
   }
-  rCtx.restore();
-  radarAngle+=0.03;
+
+  // Crosshairs
+  ctx.strokeStyle='rgba(0,229,255,0.06)';ctx.beginPath();
+  ctx.moveTo(cx-radius,cy);ctx.lineTo(cx+radius,cy);
+  ctx.moveTo(cx,cy-radius);ctx.lineTo(cx,cy+radius);ctx.stroke();
+
+  // Tick marks + NESW
+  for(let deg=0;deg<360;deg+=30){
+    const rad=deg*Math.PI/180;
+    const major=deg%90===0;
+    const len=major?10:5;
+    const op=major?0.35:0.15;
+    const x1=cx+Math.cos(rad)*(radius-len);
+    const y1=cy+Math.sin(rad)*(radius-len);
+    const x2=cx+Math.cos(rad)*radius;
+    const y2=cy+Math.sin(rad)*radius;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+    ctx.strokeStyle=`rgba(0,229,255,${op})`;ctx.lineWidth=1;ctx.stroke();
+    if(major){
+      const li=[90,180,270,0].indexOf(deg);
+      if(li>=0){
+        const lbl=DIRS_LABEL[li];
+        const lx=cx+Math.cos(rad)*(radius+12);
+        const ly=cy+Math.sin(rad)*(radius+12);
+        ctx.font='9px Orbitron';ctx.fillStyle='rgba(0,229,255,0.4)';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(lbl,lx,ly);
+      }
+    }
+  }
+
+  // Sweep trail (90° arc behind sweep)
+  const trailStart=sw-Math.PI/2;
+  for(let i=0;i<30;i++){
+    const a=trailStart+i*(Math.PI/2)/30;
+    const op=i/30*0.25;
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,radius,a,a+0.06);ctx.closePath();
+    ctx.fillStyle=`rgba(0,229,255,${op})`;ctx.fill();
+  }
+
+  // Sweep line
+  ctx.beginPath();ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(sw)*radius,cy+Math.sin(sw)*radius);
+  ctx.strokeStyle='rgba(0,229,255,0.8)';ctx.lineWidth=2;
+  ctx.shadowColor='rgba(0,229,255,0.6)';ctx.shadowBlur=8;ctx.stroke();
+  ctx.shadowBlur=0;
+
   // Dots
   const now=Date.now();
-  if(Math.random()<0.05)radarDots.push({x:cx+(Math.random()-0.5)*r*1.6,y:cy+(Math.random()-0.5)*r*1.6,t:now});
-  radarDots.forEach((d,i)=>{
-    const age=(now-d.t)/1000;
-    if(age>3.5){radarDots.splice(i,1);return;}
-    const op=1-age/3.5;
-    rCtx.beginPath();rCtx.arc(d.x,d.y,3,0,Math.PI*2);
-    rCtx.fillStyle=`rgba(0,229,255,${op})`;rCtx.fill();
-  });
+  // Spawn dot when sweep passes
+  if(Math.random()<0.03){
+    const a=sw+Math.random()*0.3-0.15;
+    const d=Math.random()*radius*0.85+radius*0.1;
+    const tk=TK[Math.floor(Math.random()*TK.length)];
+    dots.push({x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d,t:now,tk:Math.random()>0.6?tk:null});
+  }
+
+  for(let i=dots.length-1;i>=0;i--){
+    const dot=dots[i];
+    const age=(now-dot.t)/1000;
+    if(age>8){dots.splice(i,1);continue;}
+
+    // Ping ripple on fresh dots
+    if(age<1.5){
+      for(let r=1;r<=3;r++){
+        const rAge=age-r*0.2;
+        if(rAge>0&&rAge<1){
+          const rr=rAge*20;
+          ctx.beginPath();ctx.arc(dot.x,dot.y,rr,0,Math.PI*2);
+          ctx.strokeStyle=`rgba(0,255,136,${0.3*(1-rAge)})`;ctx.lineWidth=1;ctx.stroke();
+        }
+      }
+    }
+
+    // Dot
+    const op=Math.max(0,1-age/8);
+    ctx.beginPath();ctx.arc(dot.x,dot.y,3,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,255,136,${op*0.9})`;ctx.fill();
+
+    // Label
+    if(dot.tk){
+      ctx.font='8px "Share Tech Mono"';ctx.fillStyle=`rgba(0,229,255,${op*0.5})`;
+      ctx.textAlign='left';ctx.textBaseline='middle';
+      ctx.fillText(dot.tk,dot.x+6,dot.y);
+    }
+  }
+
   // Center
-  rCtx.beginPath();rCtx.arc(cx,cy,3,0,Math.PI*2);
-  const pulse=0.5+0.5*Math.sin(now/300);
-  rCtx.fillStyle=`rgba(0,229,255,${pulse})`;rCtx.fill();
-  requestAnimationFrame(drawRadar);
+  const cp=0.5+0.5*Math.sin(now/400);
+  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
+  ctx.fillStyle=`rgba(0,229,255,${0.5+cp*0.5})`;ctx.fill();
+  ctx.font='8px Orbitron';ctx.fillStyle='rgba(0,229,255,0.3)';ctx.textAlign='center';
+  ctx.fillText('NEXUS',cx,cy+16);
+
+  // Outer ring glow
+  ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
+  ctx.strokeStyle='rgba(0,229,255,0.5)';ctx.lineWidth=2;
+  ctx.shadowColor='rgba(0,229,255,0.3)';ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
+
+  // Tracking label
+  document.getElementById('tracking-label').textContent='\u25CF TRACKING '+dots.length+' SIGNALS';
+
+  sw+=Math.PI*2/600; // 10s per rotation at 60fps
+  requestAnimationFrame(drawSonar);
 }
 
-// ── ZONE 3: Matrix ───────────────────
-const matC=document.getElementById('matrix');
-const mCtx=matC?matC.getContext('2d'):null;
-const matChars='01234567890ABCDEFabcdefTSLAAMDNVDASPYQQQMETAGOOG';
-let matCols=[];
-
-function initMatrix(){
-  if(!mCtx||reducedMotion)return;
-  matC.width=matC.parentElement.offsetWidth;
-  const cols=Math.floor(matC.width/14);
-  matCols=Array.from({length:cols},()=>Math.random()*matC.height);
-}
-function drawMatrix(){
-  if(!mCtx||reducedMotion)return;
-  mCtx.fillStyle='rgba(8,12,18,0.15)';
-  mCtx.fillRect(0,0,matC.width,matC.height);
-  mCtx.font='12px "Share Tech Mono"';
-  mCtx.fillStyle='rgba(0,229,255,0.3)';
-  matCols.forEach((y,i)=>{
-    const ch=matChars[Math.floor(Math.random()*matChars.length)];
-    mCtx.fillText(ch,i*14,y);
-    matCols[i]=y>matC.height&&Math.random()>0.98?0:y+14;
-  });
-  requestAnimationFrame(drawMatrix);
-}
-
-// ── ZONE 4: Signal table ─────────────
+// ── Signal Table ─────────────────────
 const sigBody=document.getElementById('sig-body');
-function addSignalRow(){
+function addSig(){
   const now=new Date();
   const ts=now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const t=TICKERS[Math.floor(Math.random()*TICKERS.length)];
-  const d=DIRS[Math.floor(Math.random()*DIRS.length)];
-  const g=GRADES[Math.floor(Math.random()*GRADES.length)];
-  const s=SIG_STATUSES[Math.floor(Math.random()*SIG_STATUSES.length)];
+  const tk=TK[Math.floor(Math.random()*TK.length)];
+  const d=DR[Math.floor(Math.random()*DR.length)];
+  const g=GR[Math.floor(Math.random()*GR.length)];
+  const sf=SF[Math.floor(Math.random()*SF.length)];
+  const s=ST[Math.floor(Math.random()*ST.length)];
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td style="color:#888">${ts}</td><td style="color:#fff;font-weight:bold">${t}</td><td>${d}</td><td>${g}</td><td class="${s.cls}">${s.text}</td>`;
+  tr.innerHTML=`<td style="color:var(--grey-d)">${ts}</td><td style="color:var(--white);font-weight:bold">${tk}</td><td>${d}</td><td>${g}</td><td style="color:var(--grey)">${sf}</td><td class="${s.c}">${s.t}</td>`;
   if(sigBody.firstChild)sigBody.insertBefore(tr,sigBody.firstChild);
   else sigBody.appendChild(tr);
-  while(sigBody.children.length>8)sigBody.lastChild.remove();
+  while(sigBody.children.length>6)sigBody.lastChild.remove();
 }
 
-// ── SERVICE STATUS ───────────────────
-async function checkStatus(){
+// ── Service Status ───────────────────
+async function fetchStatus(){
   try{
     const r=await fetch('/api/service-status');
-    const data=await r.json();
-    let up=0,total=0;
-    for(const[name,status]of Object.entries(data)){
-      total++;
-      const dot=document.getElementById('dot-'+name);
-      if(dot)dot.className='tile-dot '+(status==='ok'?'ok':'down');
-      if(status==='ok')up++;
+    const d=await r.json();
+    let up=0,tot=0;
+    for(const[n,s]of Object.entries(d)){
+      tot++;const dot=document.getElementById('dot-'+n);
+      if(dot)dot.className='tile-dot '+(s==='ok'?'ok':'down');
+      if(s==='ok')up++;
     }
-    document.getElementById('svc-count').textContent=up+'/'+total+' ONLINE';
+    document.getElementById('svc-count').textContent=up+'/'+tot+' ONLINE';
     document.getElementById('last-check').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});
-    // Update stats (simulated from service count for now)
-    updateStat('st-open',String(Math.floor(Math.random()*40+60)));
-    updateStat('st-signals',String(Math.floor(Math.random()*20+30)));
-    updateStat('st-trades',String(Math.floor(Math.random()*10+5)));
+    uStat('st-open',String(Math.floor(Math.random()*40+60)));
+    uStat('st-sig',String(Math.floor(Math.random()*20+30)));
+    uStat('st-trd',String(Math.floor(Math.random()*10+5)));
     const pnl=Math.floor(Math.random()*2000-500);
-    const pnlEl=document.getElementById('st-pnl');
-    pnlEl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl);
-    pnlEl.className='val '+(pnl>=0?'green':'red');
-    updateStat('st-winrate',Math.floor(Math.random()*30+50)+'%');
-    const agEl=document.getElementById('st-agent');
-    agEl.textContent=up>=2?'RUNNING':'PAUSED';
-    agEl.className='val '+(up>=2?'green':'amber');
-  }catch(e){
-    document.getElementById('svc-count').textContent='ERROR';
-  }
+    const pe=document.getElementById('st-pnl');
+    pe.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl);pe.className='vl '+(pnl>=0?'g':'r');
+    uStat('st-wr',Math.floor(Math.random()*30+50)+'%');
+    const ae=document.getElementById('st-agent');ae.textContent=up>=2?'RUNNING':'PAUSED';
+    ae.className='vl '+(up>=2?'g':'a');
+  }catch(e){document.getElementById('svc-count').textContent='ERROR'}
 }
 
-function updateClock(){
+function clock(){
   document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';
 }
 
 // ── INIT ─────────────────────────────
-checkStatus();
-setInterval(checkStatus,15000);
-setInterval(updateClock,1000);
-updateClock();
-if(!reducedMotion){
-  drawRadar();
-  initMatrix();drawMatrix();
-  window.addEventListener('resize',initMatrix);
-  setInterval(addSignalRow,2500);
-  addSignalRow();addSignalRow();addSignalRow();
+fetchStatus();
+setInterval(fetchStatus,15000);
+setInterval(clock,1000);clock();
+if(!RM){
+  initSonar();drawSonar();
+  window.addEventListener('resize',initSonar);
+  setInterval(addSig,2500);addSig();addSig();addSig();
 }
 </script>
 </body>
