@@ -71,8 +71,8 @@ body::before{
   animation:titleGlitch 6s infinite;
   text-shadow:0 0 10px var(--red-glow);
 }
-.hdr-sub{font-size:10px;color:var(--white-muted);letter-spacing:0.2em}
-.header-right{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--white-muted)}
+.hdr-sub{font-size:10px;color:#888;letter-spacing:0.2em}
+.header-right{display:flex;align-items:center;gap:14px;font-size:10px;color:#888}
 .online-dot{
   width:6px;height:6px;border-radius:50%;background:var(--red-core);
   box-shadow:0 0 6px var(--red-core);
@@ -88,7 +88,7 @@ body::before{
 /* Ticker */
 .ticker-bar{
   width:100%;overflow:hidden;height:14px;
-  border-top:1px solid #220000;font-size:9px;color:var(--dark-red);
+  border-top:1px solid #220000;font-size:9px;color:#666;
 }
 .ticker-inner{
   display:inline-block;white-space:nowrap;
@@ -97,7 +97,8 @@ body::before{
 @keyframes tickerScroll{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
 
 /* ── LAYOUT ────────────────────────── */
-.main{display:flex;gap:16px;padding:16px 24px;height:calc(100vh - 80px);position:relative;z-index:2}
+.hud-bl{position:relative}
+.main{display:flex;gap:16px;padding:16px 24px;height:calc(100vh - 100px);position:relative;z-index:2}
 .col-left{flex:6;min-width:0}
 .col-right{flex:4;display:flex;flex-direction:column;gap:14px}
 
@@ -105,13 +106,12 @@ body::before{
 .terminal{
   background:var(--bg-void);border:1px solid var(--red-dim);
   box-shadow:0 0 10px var(--red-glow),0 0 30px #ff000022,inset 0 0 10px #ff000008;
-  height:100%;display:flex;flex-direction:column;
-  clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 12px,100% calc(100% - 12px),calc(100% - 12px) 100%,12px 100%,0 calc(100% - 12px),0 12px);
+  height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:2px;
 }
 .term-titlebar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;border-bottom:1px solid #220000;
-  font-size:10px;color:var(--red-dim);
+  padding:8px 14px;border-bottom:1px solid #330000;
+  font-size:10px;color:#888;
 }
 .term-dots{display:flex;gap:4px}
 .term-dots span{width:8px;height:8px;border-radius:50%;border:1px solid var(--red-dim)}
@@ -123,7 +123,7 @@ body::before{
 .term-body::-webkit-scrollbar-thumb{background:var(--red-dim);border-radius:2px}
 .term-line{white-space:pre;color:var(--red-bright)}
 .term-line .ok{color:#00ff66}
-.term-line .ts{color:#444}
+.term-line .ts{color:#888}
 .term-line .ticker{color:var(--white)}
 .term-line .qualified{color:var(--red-bright)}
 .term-line .monitoring{color:#cc6600}
@@ -155,9 +155,9 @@ body::before{
 }
 .tile-dot.ok{background:var(--red-core);box-shadow:0 0 8px var(--red-core);animation:pulse 2s ease-in-out infinite}
 .tile-dot.down{background:#440000}
-.tile-desc{font-size:10px;color:var(--white-muted);line-height:1.5;margin-bottom:10px}
+.tile-desc{font-size:10px;color:#aaa;line-height:1.5;margin-bottom:10px}
 .tile-bottom{display:flex;align-items:center;justify-content:space-between;font-size:9px}
-.tile-url{color:var(--dark-red)}
+.tile-url{color:#888}
 .tile-link{color:var(--red-dim);text-decoration:none;transition:all 0.2s}
 .tile-link:hover{color:var(--red-core);text-shadow:0 0 6px var(--red-glow)}
 .tile-divider{height:1px;background:linear-gradient(90deg,transparent,var(--red-dim),transparent);margin:0}
@@ -167,7 +167,7 @@ body::before{
   padding:10px 18px;border:1px solid var(--red-dim);background:var(--bg-deep);
   box-shadow:0 -2px 10px #ff000022;
   display:flex;align-items:center;justify-content:space-between;
-  font-size:10px;color:var(--white-muted);
+  font-size:10px;color:#888;
   clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%,0 8px);
 }
 .status-bar .val{color:var(--red-bright)}
@@ -276,7 +276,7 @@ const STATUSES = [
   {text:'QUALIFIED',cls:'qualified'},
   {text:'MONITORING',cls:'monitoring'},
   {text:'POSITION_OPEN',cls:'position'},
-  {text:'TP1_HIT \\u2713',cls:'tp-hit'},
+  {text:'TP1_HIT \u2713',cls:'tp-hit'},
   {text:'QUALIFIED',cls:'qualified'},
   {text:'MONITORING',cls:'monitoring'},
 ];
