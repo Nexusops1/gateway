@@ -42,18 +42,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 .logout:hover{background:rgba(0,229,255,0.1);border-color:var(--cyan);color:var(--cyan)}
 
 /* ── LAYOUT ──────────────────────── */
-.wrap{display:flex;gap:16px;padding:16px 24px;min-height:calc(100vh - 52px);position:relative;z-index:2}
+.wrap{display:flex;gap:16px;padding:16px 24px;position:relative;z-index:2}
 .col-l{flex:0 0 58%;display:flex;flex-direction:column;gap:14px}
 .col-r{flex:1;display:flex;flex-direction:column;gap:12px}
 
 /* ── STAT BOXES ──────────────────── */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
   opacity:0;animation:slideUp .4s var(--ease) .2s forwards}
-.sbox{background:var(--surface-2);border:1px solid rgba(0,184,204,0.2);
+.sbox{background:var(--surface-2);border:1px solid #00b8cc;border-top:2px solid #00e5ff;
   padding:10px 12px;text-align:center;
   clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 3px);
-  box-shadow:0 0 6px rgba(0,229,255,0.05)}
-.sbox .lb{font-size:9px;color:var(--grey-d);letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+  box-shadow:0 0 12px rgba(0,229,255,0.25),inset 0 0 8px rgba(0,229,255,0.05)}
+.sbox .lb{font-size:9px;color:#aaa;letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
 .sbox .vl{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;
   color:var(--cyan);margin-top:4px;text-shadow:0 0 8px rgba(0,229,255,0.2);
   transition:text-shadow .3s}
@@ -62,13 +62,13 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 
 /* ── SONAR ───────────────────────── */
 .sonar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  position:relative;min-height:0;
+  width:100%;position:relative;min-height:0;
   opacity:0;animation:fadeIn .5s var(--ease) .4s forwards}
-.sonar-canvas{display:block;max-width:100%}
+.sonar-canvas{display:block;margin:0 auto;max-width:100%}
 .sonar-labels{display:flex;justify-content:space-between;width:100%;padding:6px 4px 0;font-size:9px}
 .sonar-labels span{font-family:'Share Tech Mono',monospace}
-.sonar-labels .ll{color:var(--grey-d)}.sonar-labels .lc{color:var(--cyan-d)}
-.sonar-labels .lr{color:var(--grey-d)}
+.sonar-labels .ll{color:#aaa}.sonar-labels .lc{color:var(--cyan-d)}
+.sonar-labels .lr{color:#aaa}
 
 /* ── TILES ───────────────────────── */
 .tile{background:var(--surface-2);background:linear-gradient(180deg,var(--surface-2),var(--surface));
@@ -86,9 +86,9 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 .tile-dot{width:8px;height:8px;border-radius:50%;background:var(--grey-d);flex-shrink:0}
 .tile-dot.ok{background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:dotPulse 3s ease-in-out infinite}
 .tile-dot.down{background:var(--red);box-shadow:0 0 4px var(--red)}
-.tile-desc{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey);line-height:1.6;margin-bottom:8px;font-weight:500}
+.tile-desc{font-family:'Rajdhani',sans-serif;font-size:12px;color:#aaa;line-height:1.6;margin-bottom:8px;font-weight:500}
 .tile-bot{display:flex;align-items:center;justify-content:space-between;font-size:10px}
-.tile-url{font-family:'Share Tech Mono',monospace;color:var(--grey-d)}
+.tile-url{font-family:'Share Tech Mono',monospace;color:#aaa}
 .tile-link{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:11px;color:var(--cyan-d);
   text-decoration:none;transition:all .2s var(--ease)}
 .tile-sep{height:1px;background:linear-gradient(90deg,transparent 10%,rgba(0,184,204,0.15) 50%,transparent 90%);
@@ -98,7 +98,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 
 /* ── STATUS BAR ──────────────────── */
 .sbar{padding:8px 14px;background:var(--surface);border-top:1px solid rgba(0,184,204,0.15);
-  display:flex;align-items:center;justify-content:space-between;font-size:10px}
+  display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#aaa}
 .sbar .v{color:var(--cyan);font-family:'Share Tech Mono',monospace}
 
 /* ── INTEL FEED ──────────────────── */
@@ -108,17 +108,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
   font-size:9px;color:var(--cyan-d);letter-spacing:0.15em}
 .intel-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan-d);animation:dotPulse 2s ease-in-out infinite}
 .intel-scroll{padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:var(--grey);line-height:1.8;animation:scrollUp 20s linear infinite}
-@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-100%)}}
+  color:#aaa;line-height:1.8;animation:scrollUp 12s linear infinite}
+@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
 
 /* ── SIGNAL TABLE ────────────────── */
-.sig-panel{margin:0 24px 20px;border:1px solid rgba(0,184,204,0.15);background:var(--surface);
+.sig-panel{margin:0 24px 24px;border:1px solid #00b8cc;background:var(--surface);
+  box-shadow:0 0 12px rgba(0,229,255,0.15);
   opacity:0;animation:fadeIn .4s var(--ease) .9s forwards}
 .sig-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--cyan);
   letter-spacing:0.15em;padding:10px 14px;border-bottom:1px solid rgba(0,184,204,0.1)}
 .sig-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .sig-tbl th{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;
-  color:var(--grey-d);letter-spacing:0.2em;text-transform:uppercase;
+  color:#aaa;letter-spacing:0.2em;text-transform:uppercase;
   text-align:left;padding:6px 14px;border-bottom:1px solid rgba(0,229,255,0.06)}
 .sig-tbl td{font-family:'Share Tech Mono',monospace;padding:6px 14px;
   border-bottom:1px solid rgba(0,229,255,0.04)}
@@ -150,7 +151,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
     <span class="online-dot"></span>
     <span style="color:var(--cyan)">ONLINE</span>
     <span>NexusOps</span>
-    <span id="clock" style="font-family:'Share Tech Mono',monospace;color:var(--grey-d)"></span>
+    <span id="clock" style="font-family:'Share Tech Mono',monospace;color:#aaa"></span>
     <a href="/auth/logout" class="logout">LOGOUT</a>
   </div>
 </header>
@@ -209,11 +210,19 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
           NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
           LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
           PAPER EXECUTION ENGINE LIVE<br>
-          ALL SYSTEMS OPERATIONAL<br>
-          PRAXIUM HOLDINGS // PROPRIETARY<br>
+          ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE<br>
+          PRAXIUM HOLDINGS // PROPRIETARY SYSTEM<br>
+          SIGNAL ACQUISITION ACTIVE // TRACKING LIVE<br>
+          AUTONOMOUS AGENT LOOP RUNNING<br>
+          JWT AUTHENTICATION LAYER ACTIVE<br>
           NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
           LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
           PAPER EXECUTION ENGINE LIVE<br>
+          ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE<br>
+          PRAXIUM HOLDINGS // PROPRIETARY SYSTEM<br>
+          SIGNAL ACQUISITION ACTIVE // TRACKING LIVE<br>
+          AUTONOMOUS AGENT LOOP RUNNING<br>
+          JWT AUTHENTICATION LAYER ACTIVE<br>
         </div>
       </div>
     </div>
@@ -235,7 +244,16 @@ const TK=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NF
 const DR=['SHORT','LONG'];
 const GR=['A+','A','A','A+'];
 const SF=['hunt_mode','trend_cont','reversal','hunt_mode'];
-const ST=[{t:'QUALIFIED',c:'q'},{t:'MONITORING',c:'m'},{t:'TP1_HIT',c:'gn'},{t:'STOP_LOSS',c:'rd'},{t:'QUALIFIED',c:'q'},{t:'MONITORING',c:'m'}];
+const SIGS=[
+  {ticker:'TSLA',dir:'SHORT',grade:'A+',setup:'hunt_mode',status:'QUALIFIED',c:'q'},
+  {ticker:'AMD',dir:'LONG',grade:'A+',setup:'hunt_mode',status:'TP1_HIT',c:'gn'},
+  {ticker:'SPY',dir:'SHORT',grade:'A',setup:'trend_cont',status:'MONITORING',c:'m'},
+  {ticker:'META',dir:'LONG',grade:'A',setup:'trend_cont',status:'QUALIFIED',c:'q'},
+  {ticker:'NVDA',dir:'SHORT',grade:'A+',setup:'hunt_mode',status:'BE_STOP',c:'gn'},
+  {ticker:'QQQ',dir:'SHORT',grade:'A',setup:'trend_cont',status:'STOP_LOSS',c:'rd'},
+  {ticker:'PLTR',dir:'LONG',grade:'A+',setup:'hunt_mode',status:'TP1_HIT',c:'gn'},
+  {ticker:'GS',dir:'SHORT',grade:'A',setup:'hunt_mode',status:'MONITORING',c:'m'},
+];
 
 // ── Stats ────────────────────────────
 function uStat(id,v){const e=document.getElementById(id);if(!e)return;const o=e.textContent;e.textContent=v;
@@ -384,18 +402,14 @@ function drawSonar(){
 // ── Signal Table ─────────────────────
 const sigBody=document.getElementById('sig-body');
 function addSig(){
-  const now=new Date();
-  const ts=now.toLocaleTimeString('en-US',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const tk=TK[Math.floor(Math.random()*TK.length)];
-  const d=DR[Math.floor(Math.random()*DR.length)];
-  const g=GR[Math.floor(Math.random()*GR.length)];
-  const sf=SF[Math.floor(Math.random()*SF.length)];
-  const s=ST[Math.floor(Math.random()*ST.length)];
+  const ts=new Date().toTimeString().slice(0,8);
+  const s=SIGS[Math.floor(Math.random()*SIGS.length)];
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td style="color:var(--grey-d)">${ts}</td><td style="color:var(--white);font-weight:bold">${tk}</td><td>${d}</td><td>${g}</td><td style="color:var(--grey)">${sf}</td><td class="${s.c}">${s.t}</td>`;
+  tr.style.animation='rowIn .3s var(--ease)';
+  tr.innerHTML=`<td style="color:#aaa">${ts}</td><td style="color:#fff;font-weight:bold">${s.ticker}</td><td style="color:#ccc">${s.dir}</td><td style="color:#ccc">${s.grade}</td><td style="color:#aaa">${s.setup}</td><td class="${s.c}">${s.status}</td>`;
   if(sigBody.firstChild)sigBody.insertBefore(tr,sigBody.firstChild);
   else sigBody.appendChild(tr);
-  while(sigBody.children.length>6)sigBody.lastChild.remove();
+  while(sigBody.children.length>6){const last=sigBody.lastChild;last.style.opacity='0';last.style.transition='opacity .3s';setTimeout(()=>last.remove(),300);}
 }
 
 // ── Service Status ───────────────────
