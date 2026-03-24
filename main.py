@@ -19,7 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 load_dotenv()
 
-ADMIN_USER = "admin"
+ADMIN_USER = "NexusOps"
 ADMIN_PASSWORD = os.environ.get("NEXUS_ADMIN_PASSWORD", "")
 JWT_SECRET = os.environ.get("NEXUS_JWT_SECRET", "")
 JWT_ALGORITHM = "HS256"
