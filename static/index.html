@@ -102,14 +102,18 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 .sbar .v{color:var(--cyan);font-family:'Share Tech Mono',monospace}
 
 /* ── INTEL FEED ──────────────────── */
-.intel{background:var(--surface);border:1px solid rgba(0,184,204,0.15);overflow:hidden;height:80px;position:relative;flex-shrink:0}
+.intel{background:var(--surface);border:1px solid rgba(0,184,204,0.15);overflow:hidden;height:160px;position:relative;flex-shrink:0}
 .intel-hdr{display:flex;align-items:center;gap:6px;padding:6px 12px;
   border-bottom:1px solid rgba(0,184,204,0.1);font-family:'Orbitron',sans-serif;
   font-size:9px;color:var(--cyan-d);letter-spacing:0.15em}
 .intel-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan-d);animation:dotPulse 2s ease-in-out infinite}
-.intel-scroll{padding:6px 12px;font-family:'Share Tech Mono',monospace;font-size:10px;
-  color:#aaa;line-height:1.8;animation:scrollUp 12s linear infinite}
-@keyframes scrollUp{0%{transform:translateY(0)}100%{transform:translateY(-50%)}}
+.intel-body{padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.7}
+.intel-line{color:#444;transition:color .5s}
+.intel-line.active{color:#aaa}
+.intel-line.newest{color:#ccc}
+.intel-cursor{display:inline-block;width:6px;height:12px;background:var(--cyan);
+  animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
 /* ── SIGNAL TABLE ────────────────── */
 .sig-panel{margin:0 24px 24px;border:1px solid #00b8cc;background:var(--surface);
@@ -205,26 +209,7 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 
     <div class="intel">
       <div class="intel-hdr"><span class="intel-dot"></span> INTEL FEED</div>
-      <div style="overflow:hidden;height:52px">
-        <div class="intel-scroll">
-          NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
-          LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
-          PAPER EXECUTION ENGINE LIVE<br>
-          ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE<br>
-          PRAXIUM HOLDINGS // PROPRIETARY SYSTEM<br>
-          SIGNAL ACQUISITION ACTIVE // TRACKING LIVE<br>
-          AUTONOMOUS AGENT LOOP RUNNING<br>
-          JWT AUTHENTICATION LAYER ACTIVE<br>
-          NEXUS LABS // AUTONOMOUS TRADING SYSTEM<br>
-          LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING<br>
-          PAPER EXECUTION ENGINE LIVE<br>
-          ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE<br>
-          PRAXIUM HOLDINGS // PROPRIETARY SYSTEM<br>
-          SIGNAL ACQUISITION ACTIVE // TRACKING LIVE<br>
-          AUTONOMOUS AGENT LOOP RUNNING<br>
-          JWT AUTHENTICATION LAYER ACTIVE<br>
-        </div>
-      </div>
+      <div class="intel-body" id="intel-body"></div>
     </div>
   </div>
 </div>
@@ -241,9 +226,6 @@ body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
 <script>
 const RM=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 const TK=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','SHOP','COIN','PLTR','DKNG','ABNB'];
-const DR=['SHORT','LONG'];
-const GR=['A+','A','A','A+'];
-const SF=['hunt_mode','trend_cont','reversal','hunt_mode'];
 const SIGS=[
   {ticker:'TSLA',dir:'SHORT',grade:'A+',setup:'hunt_mode',status:'QUALIFIED',c:'q'},
   {ticker:'AMD',dir:'LONG',grade:'A+',setup:'hunt_mode',status:'TP1_HIT',c:'gn'},
@@ -255,42 +237,51 @@ const SIGS=[
   {ticker:'GS',dir:'SHORT',grade:'A',setup:'hunt_mode',status:'MONITORING',c:'m'},
 ];
 
-// ── Stats ────────────────────────────
 function uStat(id,v){const e=document.getElementById(id);if(!e)return;const o=e.textContent;e.textContent=v;
   if(o!==v&&o!=='--'){e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),400);}}
 
-// ── Sonar ────────────────────────────
+// ══════════════════════════════════════
+// SONAR — memory-safe, runs forever
+// ══════════════════════════════════════
 const sonarEl=document.getElementById('sonar');
 const ctx=sonarEl?sonarEl.getContext('2d'):null;
-let sw=0; // sweep angle
-const dots=[];
+let sw=0;
+const dots=[];  // hard cap: 30
 const DIRS_LABEL=['N','E','S','W'];
-let sonarSize=0,cx=0,cy=0,radius=0;
+let cx=0,cy=0,radius=0;
+const trackLabel=document.getElementById('tracking-label');
 
 function initSonar(){
   if(!sonarEl)return;
   const w=sonarEl.parentElement.offsetWidth;
   const h=Math.min(w,420);
   sonarEl.width=w;sonarEl.height=h;
-  sonarSize=Math.min(w,h);cx=w/2;cy=h/2;radius=(sonarSize/2)-20;
+  cx=w/2;cy=h/2;radius=(Math.min(w,h)/2)-20;
+}
+
+// Dot spawning on SEPARATE timer — never inside draw loop
+function spawnDot(){
+  if(dots.length>=30) dots.shift(); // hard cap, remove oldest
+  const a=sw+Math.random()*0.3-0.15;
+  const d=Math.random()*radius*0.85+radius*0.1;
+  const tk=TK[Math.floor(Math.random()*TK.length)];
+  dots.push({x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d,t:Date.now(),tk:Math.random()>0.5?tk:null});
 }
 
 function drawSonar(){
-  if(!ctx||RM)return;
+  if(!ctx)return;
   const w=sonarEl.width,h=sonarEl.height;
   ctx.clearRect(0,0,w,h);
 
-  // Background gradient
-  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,radius+30);
-  bg.addColorStop(0,'#000');bg.addColorStop(0.8,'#020408');bg.addColorStop(1,'#050810');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+  // Background
+  ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
 
   // Rings
+  ctx.lineWidth=1;
   for(let i=1;i<=4;i++){
     ctx.beginPath();ctx.arc(cx,cy,radius*i/4,0,Math.PI*2);
-    ctx.strokeStyle='rgba(0,184,204,0.12)';ctx.lineWidth=1;ctx.stroke();
-    // Ring labels
-    ctx.font='9px "Share Tech Mono"';ctx.fillStyle='rgba(68,68,68,0.6)';
+    ctx.strokeStyle='rgba(0,184,204,0.12)';ctx.stroke();
+    ctx.font='9px "Share Tech Mono"';ctx.fillStyle='rgba(100,100,100,0.6)';ctx.textAlign='left';ctx.textBaseline='middle';
     ctx.fillText((i*25)+'km',cx+radius*i/4+4,cy+3);
   }
 
@@ -299,124 +290,164 @@ function drawSonar(){
   ctx.moveTo(cx-radius,cy);ctx.lineTo(cx+radius,cy);
   ctx.moveTo(cx,cy-radius);ctx.lineTo(cx,cy+radius);ctx.stroke();
 
-  // Tick marks + NESW
+  // Ticks + NESW
   for(let deg=0;deg<360;deg+=30){
-    const rad=deg*Math.PI/180;
-    const major=deg%90===0;
-    const len=major?10:5;
-    const op=major?0.35:0.15;
-    const x1=cx+Math.cos(rad)*(radius-len);
-    const y1=cy+Math.sin(rad)*(radius-len);
-    const x2=cx+Math.cos(rad)*radius;
-    const y2=cy+Math.sin(rad)*radius;
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
-    ctx.strokeStyle=`rgba(0,229,255,${op})`;ctx.lineWidth=1;ctx.stroke();
+    const rad=deg*Math.PI/180;const major=deg%90===0;
+    const len=major?10:5;const op=major?0.35:0.15;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(rad)*(radius-len),cy+Math.sin(rad)*(radius-len));
+    ctx.lineTo(cx+Math.cos(rad)*radius,cy+Math.sin(rad)*radius);
+    ctx.strokeStyle='rgba(0,229,255,'+op+')';ctx.lineWidth=1;ctx.stroke();
     if(major){
       const li=[90,180,270,0].indexOf(deg);
       if(li>=0){
-        const lbl=DIRS_LABEL[li];
-        const lx=cx+Math.cos(rad)*(radius+12);
-        const ly=cy+Math.sin(rad)*(radius+12);
         ctx.font='9px Orbitron';ctx.fillStyle='rgba(0,229,255,0.4)';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(lbl,lx,ly);
+        ctx.fillText(DIRS_LABEL[li],cx+Math.cos(rad)*(radius+12),cy+Math.sin(rad)*(radius+12));
       }
     }
   }
 
-  // Sweep trail (90° arc behind sweep)
-  const trailStart=sw-Math.PI/2;
+  // Sweep trail
+  const ts=sw-Math.PI/2;
   for(let i=0;i<30;i++){
-    const a=trailStart+i*(Math.PI/2)/30;
-    const op=i/30*0.25;
-    ctx.beginPath();ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,radius,a,a+0.06);ctx.closePath();
-    ctx.fillStyle=`rgba(0,229,255,${op})`;ctx.fill();
+    const a=ts+i*(Math.PI/2)/30;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,radius,a,a+0.06);ctx.closePath();
+    ctx.fillStyle='rgba(0,229,255,'+(i/30*0.25)+')';ctx.fill();
   }
 
   // Sweep line
   ctx.beginPath();ctx.moveTo(cx,cy);
   ctx.lineTo(cx+Math.cos(sw)*radius,cy+Math.sin(sw)*radius);
   ctx.strokeStyle='rgba(0,229,255,0.8)';ctx.lineWidth=2;
-  ctx.shadowColor='rgba(0,229,255,0.6)';ctx.shadowBlur=8;ctx.stroke();
-  ctx.shadowBlur=0;
+  ctx.shadowColor='rgba(0,229,255,0.6)';ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
 
-  // Dots
+  // Draw dots (READ only — no splice/push here)
   const now=Date.now();
-  // Spawn dot when sweep passes
-  if(Math.random()<0.03){
-    const a=sw+Math.random()*0.3-0.15;
-    const d=Math.random()*radius*0.85+radius*0.1;
-    const tk=TK[Math.floor(Math.random()*TK.length)];
-    dots.push({x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d,t:now,tk:Math.random()>0.6?tk:null});
-  }
-
-  for(let i=dots.length-1;i>=0;i--){
-    const dot=dots[i];
-    const age=(now-dot.t)/1000;
-    if(age>8){dots.splice(i,1);continue;}
-
-    // Ping ripple on fresh dots
+  let visible=0;
+  for(let i=0;i<dots.length;i++){
+    const dot=dots[i];const age=(now-dot.t)/1000;
+    if(age>8)continue; // expired, will be cleaned by spawner
+    visible++;
+    // Ping ripple
     if(age<1.5){
       for(let r=1;r<=3;r++){
         const rAge=age-r*0.2;
         if(rAge>0&&rAge<1){
-          const rr=rAge*20;
-          ctx.beginPath();ctx.arc(dot.x,dot.y,rr,0,Math.PI*2);
-          ctx.strokeStyle=`rgba(0,255,136,${0.3*(1-rAge)})`;ctx.lineWidth=1;ctx.stroke();
+          ctx.beginPath();ctx.arc(dot.x,dot.y,rAge*20,0,Math.PI*2);
+          ctx.strokeStyle='rgba(0,255,136,'+(0.3*(1-rAge))+')';ctx.lineWidth=1;ctx.stroke();
         }
       }
     }
-
-    // Dot
     const op=Math.max(0,1-age/8);
     ctx.beginPath();ctx.arc(dot.x,dot.y,3,0,Math.PI*2);
-    ctx.fillStyle=`rgba(0,255,136,${op*0.9})`;ctx.fill();
-
-    // Label
+    ctx.fillStyle='rgba(0,255,136,'+(op*0.9)+')';ctx.fill();
     if(dot.tk){
-      ctx.font='8px "Share Tech Mono"';ctx.fillStyle=`rgba(0,229,255,${op*0.5})`;
-      ctx.textAlign='left';ctx.textBaseline='middle';
-      ctx.fillText(dot.tk,dot.x+6,dot.y);
+      ctx.font='8px "Share Tech Mono"';ctx.fillStyle='rgba(0,229,255,'+(op*0.5)+')';
+      ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(dot.tk,dot.x+6,dot.y);
     }
   }
 
   // Center
   const cp=0.5+0.5*Math.sin(now/400);
   ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle=`rgba(0,229,255,${0.5+cp*0.5})`;ctx.fill();
-  ctx.font='8px Orbitron';ctx.fillStyle='rgba(0,229,255,0.3)';ctx.textAlign='center';
+  ctx.fillStyle='rgba(0,229,255,'+(0.5+cp*0.5)+')';ctx.fill();
+  ctx.font='8px Orbitron';ctx.fillStyle='rgba(0,229,255,0.3)';ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillText('NEXUS',cx,cy+16);
 
-  // Outer ring glow
+  // Outer ring
   ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
   ctx.strokeStyle='rgba(0,229,255,0.5)';ctx.lineWidth=2;
   ctx.shadowColor='rgba(0,229,255,0.3)';ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
 
-  // Tracking label
-  document.getElementById('tracking-label').textContent='\u25CF TRACKING '+dots.length+' SIGNALS';
+  trackLabel.textContent='\u25CF TRACKING '+visible+' SIGNALS';
 
-  sw+=Math.PI*2/600; // 10s per rotation at 60fps
+  // Sweep angle — wraps with modulo
+  sw=(sw+Math.PI*2/600)%(Math.PI*2);
+
   requestAnimationFrame(drawSonar);
 }
 
-// ── Signal Table ─────────────────────
+// Clean expired dots periodically (outside draw loop)
+function cleanDots(){
+  const now=Date.now();
+  for(let i=dots.length-1;i>=0;i--){
+    if((now-dots[i].t)/1000>8) dots.splice(i,1);
+  }
+}
+
+// ══════════════════════════════════════
+// INTEL FEED — JS typewriter, no CSS animation
+// ══════════════════════════════════════
+const INTEL_LINES=[
+  "NEXUS LABS // AUTONOMOUS TRADING SYSTEM v2.0",
+  "LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING",
+  "PAPER EXECUTION ENGINE LIVE // AGENT LOOP ACTIVE",
+  "ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE",
+  "PRAXIUM HOLDINGS // PROPRIETARY SYSTEM",
+  "SIGNAL ACQUISITION ACTIVE // TRACKING LIVE",
+  "AUTONOMOUS AGENT LOOP RUNNING // 15s CYCLE",
+  "JWT AUTHENTICATION LAYER ACTIVE // SECURE",
+  "SUPABASE CONNECTED // DATA PIPELINE HEALTHY",
+  "TRADIER QUOTE SERVICE // LIVE OPTION PRICES",
+];
+const intelBody=document.getElementById('intel-body');
+let intelLineIdx=0;
+const intelDisplayed=[];  // {el, text}
+
+function typeIntelLine(){
+  const text=INTEL_LINES[intelLineIdx%INTEL_LINES.length];
+  intelLineIdx++;
+  const div=document.createElement('div');
+  div.className='intel-line newest';
+  intelBody.appendChild(div);
+  const cursor=document.createElement('span');
+  cursor.className='intel-cursor';
+  div.appendChild(cursor);
+
+  // Dim previous lines
+  intelDisplayed.forEach(d=>{d.el.classList.remove('newest');d.el.classList.add('active');});
+  intelDisplayed.push({el:div,text:text});
+  // Remove old lines beyond 4
+  while(intelDisplayed.length>4){
+    const old=intelDisplayed.shift();
+    old.el.classList.remove('active');
+    old.el.style.color='#333';
+    setTimeout(()=>old.el.remove(),500);
+  }
+
+  let ci=0;
+  const typeInterval=setInterval(()=>{
+    if(ci<text.length){
+      div.insertBefore(document.createTextNode(text[ci]),cursor);
+      ci++;
+    }else{
+      clearInterval(typeInterval);
+      setTimeout(()=>{cursor.remove();setTimeout(typeIntelLine,500);},1500);
+    }
+  },35);
+}
+
+// ══════════════════════════════════════
+// SIGNAL TABLE
+// ══════════════════════════════════════
 const sigBody=document.getElementById('sig-body');
 function addSig(){
   const ts=new Date().toTimeString().slice(0,8);
   const s=SIGS[Math.floor(Math.random()*SIGS.length)];
   const tr=document.createElement('tr');
   tr.style.animation='rowIn .3s var(--ease)';
-  tr.innerHTML=`<td style="color:#aaa">${ts}</td><td style="color:#fff;font-weight:bold">${s.ticker}</td><td style="color:#ccc">${s.dir}</td><td style="color:#ccc">${s.grade}</td><td style="color:#aaa">${s.setup}</td><td class="${s.c}">${s.status}</td>`;
+  tr.innerHTML='<td style="color:#aaa">'+ts+'</td><td style="color:#fff;font-weight:bold">'+s.ticker+'</td><td style="color:#ccc">'+s.dir+'</td><td style="color:#ccc">'+s.grade+'</td><td style="color:#aaa">'+s.setup+'</td><td class="'+s.c+'">'+s.status+'</td>';
   if(sigBody.firstChild)sigBody.insertBefore(tr,sigBody.firstChild);
   else sigBody.appendChild(tr);
-  while(sigBody.children.length>6){const last=sigBody.lastChild;last.style.opacity='0';last.style.transition='opacity .3s';setTimeout(()=>last.remove(),300);}
+  while(sigBody.children.length>6)sigBody.lastChild.remove();
 }
 
-// ── Service Status ───────────────────
+// ══════════════════════════════════════
+// SERVICE STATUS
+// ══════════════════════════════════════
 async function fetchStatus(){
   try{
-    const r=await fetch('/api/service-status');
-    const d=await r.json();
+    const r=await fetch('/api/service-status');const d=await r.json();
     let up=0,tot=0;
     for(const[n,s]of Object.entries(d)){
       tot++;const dot=document.getElementById('dot-'+n);
@@ -441,15 +472,21 @@ function clock(){
   document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';
 }
 
-// ── INIT ─────────────────────────────
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
 fetchStatus();
 setInterval(fetchStatus,15000);
 setInterval(clock,1000);clock();
 if(!RM){
-  initSonar();drawSonar();
+  initSonar();
+  requestAnimationFrame(drawSonar);  // single RAF entry point
+  setInterval(spawnDot,3000);         // dots on separate timer
+  setInterval(cleanDots,5000);        // cleanup on separate timer
   window.addEventListener('resize',initSonar);
   setInterval(addSig,2500);addSig();addSig();addSig();
 }
+typeIntelLine(); // start typewriter (works with or without RM)
 </script>
 </body>
 </html>
