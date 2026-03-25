@@ -179,56 +179,84 @@ def service_status(user=Depends(require_auth)):
 
 
 # ── NEXUS Proxy Endpoints (all data flows through gateway) ────────────────────
-def _proxy(service: str, path: str):
-    """Proxy a request to a backend service. Returns JSON or error."""
+# Backend services require JWT auth — gateway forwards the cookie as Bearer token.
+
+def _proxy(request: Request, service: str, path: str):
+    """Proxy a request to a backend service, forwarding JWT auth."""
     url = SERVICES.get(service, "")
     if not url:
         return {"error": "unknown service", "data": None}
+    # Forward JWT from cookie as Bearer token to backend
+    token = request.cookies.get("nexus_session", "")
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
     try:
-        r = httpx.get(f"{url}{path}", timeout=10)
+        r = httpx.get(f"{url}{path}", headers=headers, timeout=10)
+        if r.status_code == 401:
+            return {"error": "backend auth failed", "data": None}
         return r.json()
-    except Exception:
-        return {"error": "service unavailable", "data": None}
+    except Exception as e:
+        return {"error": f"service unavailable: {str(e)[:100]}", "data": None}
 
 
 @app.get("/api/nexus/stats")
-def nexus_stats(user=Depends(require_auth)):
-    return _proxy("trading", "/api/stats")
+def nexus_stats(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/stats")
 
 
 @app.get("/api/nexus/positions")
-def nexus_positions(user=Depends(require_auth)):
-    return _proxy("trading", "/api/positions")
+def nexus_positions(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/positions")
 
 
 @app.get("/api/nexus/pipeline")
-def nexus_pipeline(user=Depends(require_auth)):
-    return _proxy("core", "/api/pipeline-stats")
+def nexus_pipeline(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "core", "/api/pipeline-stats")
 
 
 @app.get("/api/nexus/signal")
-def nexus_signal(user=Depends(require_auth)):
-    return _proxy("core", "/api/primary-signal")
+def nexus_signal(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "core", "/api/primary-signal")
 
 
 @app.get("/api/nexus/closed")
-def nexus_closed(user=Depends(require_auth)):
-    return _proxy("trading", "/api/trades/today")
+def nexus_closed(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/trades/today")
 
 
 @app.get("/api/nexus/account")
-def nexus_account(user=Depends(require_auth)):
-    return _proxy("trading", "/api/account")
+def nexus_account(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/account")
 
 
 @app.get("/api/nexus/agent")
-def nexus_agent(user=Depends(require_auth)):
-    return _proxy("trading", "/api/agent/status")
+def nexus_agent(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/agent/status")
 
 
 @app.get("/api/nexus/system-stats")
-def nexus_system_stats(user=Depends(require_auth)):
-    return _proxy("trading", "/api/system-stats")
+def nexus_system_stats(request: Request, user=Depends(require_auth)):
+    return _proxy(request, "trading", "/api/system-stats")
+
+
+@app.get("/api/nexus/debug")
+def nexus_debug(request: Request, user=Depends(require_auth)):
+    """Temporary debug endpoint — verify proxy chain is working."""
+    token = request.cookies.get("nexus_session", "")
+    headers = {"Authorization": f"Bearer {token}"} if token else {}
+    results = {"services_config": SERVICES, "has_token": bool(token)}
+    for name, url in SERVICES.items():
+        try:
+            r = httpx.get(f"{url}/api/health", headers=headers, timeout=5)
+            results[f"{name}_health"] = {"status": r.status_code, "body": r.json()}
+        except Exception as e:
+            results[f"{name}_health"] = {"status": "error", "body": str(e)[:100]}
+    # Test one protected endpoint
+    try:
+        r = httpx.get(f"{SERVICES['trading']}/api/account", headers=headers, timeout=5)
+        results["trading_account_test"] = {"status": r.status_code, "body": r.json() if r.status_code == 200 else r.text[:200]}
+    except Exception as e:
+        results["trading_account_test"] = {"status": "error", "body": str(e)[:100]}
+    return results
 
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
