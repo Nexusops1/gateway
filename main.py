@@ -138,6 +138,14 @@ def login(response: Response, username: str = Form(...), password: str = Form(..
     return resp
 
 
+@app.get("/command", response_class=HTMLResponse)
+def command_center(request: Request):
+    payload = _verify_token(request)
+    if not payload:
+        return RedirectResponse(url="/", status_code=303)
+    return FileResponse(str(static_dir / "command.html"))
+
+
 @app.get("/unauthorized", response_class=HTMLResponse)
 def unauthorized_page():
     return FileResponse(str(static_dir / "unauthorized.html"))

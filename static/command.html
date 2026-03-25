@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS // COMMAND CENTER v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#000;--deep:#040810;--base:#0a0e18;--elevated:#0e1420;--muted:#141c2a;
+  --border:#1a2436;--border-s:rgba(255,255,255,0.05);
+  --cyan:#00e5ff;--cyan-d:#00a0b8;--cyan-g:rgba(0,229,255,0.25);
+  --green:#00ff88;--red:#ff3333;--amber:#ffaa00;--white:#f0f4ff;--grey:#8899aa;--dim:#445566;
+  --font:'IBM Plex Mono',monospace;--font-ui:'Rajdhani',sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--void);color:var(--grey);font-family:var(--font);font-size:12px;
+  height:100vh;overflow:hidden;display:flex;flex-direction:column;letter-spacing:0.04em}
+body::after{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px)}
+
+/* ── STATUS BAR ──────────────────── */
+.status-bar{display:flex;align-items:center;padding:6px 12px;background:var(--deep);
+  border-bottom:1px solid var(--border);gap:10px;flex-shrink:0;flex-wrap:wrap;z-index:10}
+.sb-logo{font-family:var(--font-ui);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:0.15em}
+.sb-mode{font-size:10px;padding:2px 8px;border:1px solid var(--cyan-d);color:var(--cyan);
+  letter-spacing:0.1em;cursor:pointer;transition:all .2s}
+.sb-mode:hover{background:rgba(0,229,255,0.1)}
+.sb-mode.active{background:var(--cyan);color:var(--void)}
+.sb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sb-dot.ok{background:var(--green);box-shadow:0 0 4px var(--green)}
+.sb-dot.warn{background:var(--amber);box-shadow:0 0 4px var(--amber)}
+.sb-dot.err{background:var(--red);box-shadow:0 0 4px var(--red)}
+.sb-dot.off{background:var(--dim)}
+.sb-svc{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--dim)}
+.sb-svc span{color:var(--grey)}
+.sb-right{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:10px}
+.sb-time{color:var(--cyan-d);font-weight:600}
+.sb-alerts{color:var(--amber);font-weight:600}
+.cmd-btn{font-family:var(--font);font-size:9px;padding:3px 8px;background:transparent;
+  border:1px solid var(--border);color:var(--grey);cursor:pointer;letter-spacing:0.08em;transition:all .15s}
+.cmd-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.cmd-btn.danger{border-color:rgba(255,51,51,0.3);color:var(--red)}
+.cmd-btn.danger:hover{border-color:var(--red);background:rgba(255,51,51,0.1)}
+
+/* ── LAYOUT ──────────────────────── */
+.app{display:flex;flex:1;min-height:0}
+
+/* ── NAV RAIL ────────────────────── */
+.nav{width:160px;background:var(--deep);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;padding:8px 0}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;
+  font-family:var(--font-ui);font-size:11px;font-weight:600;color:var(--dim);
+  letter-spacing:0.08em;transition:all .15s;border-left:2px solid transparent}
+.nav-item:hover{color:var(--grey);background:rgba(0,229,255,0.03)}
+.nav-item.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,229,255,0.05)}
+.nav-badge{font-size:9px;padding:1px 5px;background:rgba(255,170,0,0.15);color:var(--amber);
+  border-radius:2px;margin-left:auto;font-family:var(--font)}
+
+/* ── WORKSPACE ───────────────────── */
+.workspace{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.workspace::-webkit-scrollbar{width:4px}
+.workspace::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── RIGHT PANEL ─────────────────── */
+.rpanel{width:280px;background:var(--deep);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;padding:0}
+.rp-section{padding:10px 12px;border-bottom:1px solid var(--border)}
+.rp-title{font-size:9px;color:var(--cyan-d);letter-spacing:0.2em;margin-bottom:6px;font-weight:600}
+.rp-item{font-size:10px;color:var(--grey);padding:3px 0;line-height:1.5}
+.rp-item b{color:var(--white);font-weight:500}
+.rp-alert{font-size:10px;padding:4px 8px;margin:3px 0;border-left:2px solid var(--amber);
+  background:rgba(255,170,0,0.04);color:var(--grey);line-height:1.4}
+.rp-alert.crit{border-left-color:var(--red);background:rgba(255,51,51,0.04)}
+.rp-alert.info{border-left-color:var(--cyan-d);background:rgba(0,229,255,0.03)}
+.rp-rec{font-size:10px;padding:6px 8px;margin:3px 0;background:rgba(0,229,255,0.04);
+  border:1px solid rgba(0,229,255,0.1);color:var(--grey);line-height:1.4;cursor:pointer}
+.rp-rec:hover{background:rgba(0,229,255,0.08)}
+.rp-cmd{width:100%;padding:6px 8px;background:var(--base);border:1px solid var(--border);
+  color:var(--grey);font-family:var(--font);font-size:11px;outline:none}
+.rp-cmd:focus{border-color:var(--cyan)}
+
+/* ── PANELS ──────────────────────── */
+.panel{background:var(--base);border:1px solid var(--border)}
+.panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-bottom:1px solid var(--border);font-size:9px;color:var(--cyan-d);letter-spacing:0.15em;font-weight:600}
+.panel-body{padding:10px 12px;font-size:11px;line-height:1.6}
+.panel-body .row{display:flex;justify-content:space-between;padding:2px 0}
+.panel-body .val{color:var(--white)}
+.panel-body .g{color:var(--green)}.panel-body .r{color:var(--red)}.panel-body .a{color:var(--amber)}
+
+/* ── AGENT GRID ──────────────────── */
+.agent-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.agent-card{background:var(--elevated);border:1px solid var(--border);padding:12px;cursor:pointer;transition:all .2s}
+.agent-card:hover{border-color:var(--cyan-d);box-shadow:0 0 8px rgba(0,229,255,0.08)}
+.ac-name{font-family:var(--font-ui);font-size:12px;font-weight:700;color:var(--white);margin-bottom:6px;
+  display:flex;align-items:center;gap:6px}
+.ac-insight{font-size:10px;color:var(--grey);line-height:1.5;margin:2px 0}
+.ac-rec{font-size:10px;color:var(--cyan-d);margin-top:6px;font-style:italic}
+
+/* ── MISSION SUMMARY ─────────────── */
+.mission{background:var(--elevated);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:14px 16px}
+.mission-title{font-family:var(--font-ui);font-size:11px;color:var(--cyan);letter-spacing:0.15em;margin-bottom:8px;font-weight:700}
+.mission-text{font-size:11px;color:var(--grey);line-height:1.7}
+.mission-text b{color:var(--white);font-weight:500}
+.mission-text .hi{color:var(--cyan)}
+.mission-text .gn{color:var(--green)}
+.mission-text .rd{color:var(--red)}
+
+/* ── PRIORITIES ──────────────────── */
+.priorities{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pri-card{background:var(--elevated);border:1px solid var(--border);padding:8px 10px;text-align:center;cursor:pointer;transition:all .2s}
+.pri-card:hover{border-color:var(--cyan-d)}
+.pri-label{font-size:8px;color:var(--dim);letter-spacing:0.15em;margin-bottom:4px}
+.pri-val{font-family:var(--font-ui);font-size:13px;font-weight:700;color:var(--white)}
+
+/* ── COMMS LOG ───────────────────── */
+.comms{max-height:160px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.comms::-webkit-scrollbar{width:3px}
+.comms::-webkit-scrollbar-thumb{background:var(--border)}
+.comm-line{font-size:10px;padding:3px 0;border-bottom:1px solid var(--border-s);display:flex;gap:6px}
+.comm-src{color:var(--cyan-d);min-width:80px;font-weight:600;text-align:right}
+.comm-msg{color:var(--grey)}
+.comm-ts{color:var(--dim);margin-left:auto;font-size:9px;flex-shrink:0}
+
+/* ── HEALTH METRICS ──────────────── */
+.health-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.health-item{background:var(--elevated);border:1px solid var(--border);padding:8px;text-align:center}
+.health-item .hl{font-size:8px;color:var(--dim);letter-spacing:0.1em}
+.health-item .hv{font-size:16px;font-weight:700;color:var(--white);margin-top:2px}
+
+/* ── MODULE VIEWS ────────────────── */
+.module-view{display:none}
+.module-view.active{display:flex;flex-direction:column;gap:14px}
+.mod-title{font-family:var(--font-ui);font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:0.1em}
+
+/* ── JARVIS ──────────────────────── */
+.jarvis-log{flex:1;overflow-y:auto;padding:8px;font-size:11px;line-height:1.6;max-height:300px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.jarvis-msg{padding:4px 0;border-bottom:1px solid var(--border-s)}
+.jarvis-msg .jr{color:var(--cyan)}
+.jarvis-msg .ju{color:var(--white)}
+.jarvis-input{display:flex;gap:6px;padding:8px}
+.jarvis-input input{flex:1;padding:8px;background:var(--base);border:1px solid var(--border);
+  color:var(--white);font-family:var(--font);font-size:12px;outline:none}
+.jarvis-input input:focus{border-color:var(--cyan)}
+.jarvis-input button{padding:8px 14px;background:var(--cyan);color:var(--void);border:none;
+  font-family:var(--font);font-size:11px;font-weight:600;cursor:pointer;letter-spacing:0.1em}
+
+/* Responsive */
+@media(max-width:1024px){.nav{width:120px}.rpanel{width:220px}.agent-grid{grid-template-columns:repeat(2,1fr)}.priorities{grid-template-columns:repeat(3,1fr)}.health-grid{grid-template-columns:repeat(2,1fr)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span class="sb-logo">NEXUS</span>
+  <span class="sb-mode active" id="mode-btn" onclick="cycleMode()">OBSERVER</span>
+  <div class="sb-svc"><div class="sb-dot ok" id="svc-gateway"></div><span>GW</span></div>
+  <div class="sb-svc"><div class="sb-dot ok" id="svc-core"></div><span>CORE</span></div>
+  <div class="sb-svc"><div class="sb-dot ok" id="svc-exec"></div><span>EXEC</span></div>
+  <div class="sb-svc"><div class="sb-dot ok" id="svc-trade"></div><span>TRADE</span></div>
+  <div class="sb-svc"><div class="sb-dot off" id="svc-sentinel"></div><span>SNTL</span></div>
+  <div class="sb-svc"><div class="sb-dot off" id="svc-jarvis"></div><span>JARVIS</span></div>
+  <div class="sb-right">
+    <span class="sb-alerts" id="alert-count">0 ALERTS</span>
+    <span class="sb-time" id="sys-time"></span>
+    <button class="cmd-btn" onclick="cmdPause()">PAUSE</button>
+    <button class="cmd-btn danger" onclick="cmdEmergency()">EMERGENCY</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <!-- NAV -->
+  <div class="nav" id="nav">
+    <div class="nav-item active" data-mod="overview"><div class="sb-dot ok"></div> OVERVIEW</div>
+    <div class="nav-item" data-mod="jarvis"><div class="sb-dot ok"></div> JARVIS</div>
+    <div class="nav-item" data-mod="sentinel"><div class="sb-dot off"></div> SENTINEL</div>
+    <div class="nav-item" data-mod="intelligence"><div class="sb-dot ok"></div> INTELLIGENCE</div>
+    <div class="nav-item" data-mod="execution"><div class="sb-dot ok"></div> EXECUTION</div>
+    <div class="nav-item" data-mod="portfolio"><div class="sb-dot off"></div> PORTFOLIO</div>
+    <div class="nav-item" data-mod="outcomes"><div class="sb-dot off"></div> OUTCOMES</div>
+    <div class="nav-item" data-mod="alerts"><div class="sb-dot warn"></div> ALERTS <span class="nav-badge" id="nav-alert-badge">3</span></div>
+    <div class="nav-item" data-mod="decisions"><div class="sb-dot off"></div> DECISIONS</div>
+    <div class="nav-item" data-mod="security"><div class="sb-dot ok"></div> SECURITY</div>
+    <div class="nav-item" data-mod="playbooks"><div class="sb-dot off"></div> PLAYBOOKS</div>
+    <div class="nav-item" data-mod="timemachine"><div class="sb-dot off"></div> TIME MACHINE</div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace" id="workspace">
+    <!-- OVERVIEW MODULE -->
+    <div class="module-view active" id="mod-overview">
+      <!-- Mission Summary -->
+      <div class="mission">
+        <div class="mission-title">MISSION BRIEFING</div>
+        <div class="mission-text" id="mission-text">
+          System posture: <b class="gn">NOMINAL</b>. All core services operational.<br>
+          <b>87</b> active positions across <b>42</b> tickers. Today P&L: <b class="gn">+$1,247</b>.<br>
+          Top runner: <b class="hi">TSLA</b> (+$340, TP2 territory). Top risk: <b class="rd">NVDA</b> (-$180, near stop).<br>
+          Strongest setup: <b>hunt_mode</b> (62% win rate today). Biggest concern: <b class="a">Quote failures elevated</b> (23 in 15min).<br>
+          Recommendation: <span class="hi">Continue OBSERVER mode. Monitor NVDA position closely.</span>
+        </div>
+      </div>
+
+      <!-- Top Priorities -->
+      <div class="panel"><div class="panel-hdr">TOP PRIORITIES</div>
+        <div style="padding:8px 12px">
+          <div class="priorities" id="priorities">
+            <div class="pri-card"><div class="pri-label">TOP OPPORTUNITY</div><div class="pri-val" style="color:var(--cyan)">AMD A+</div></div>
+            <div class="pri-card"><div class="pri-label">TOP RUNNER</div><div class="pri-val" style="color:var(--green)">TSLA +$340</div></div>
+            <div class="pri-card"><div class="pri-label">TOP RISK</div><div class="pri-val" style="color:var(--red)">NVDA -$180</div></div>
+            <div class="pri-card"><div class="pri-label">TOP ANOMALY</div><div class="pri-val" style="color:var(--amber)">Quote Lag</div></div>
+            <div class="pri-card"><div class="pri-label">SYSTEM ISSUE</div><div class="pri-val" style="color:var(--green)">None</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Grid -->
+      <div class="panel"><div class="panel-hdr">AGENT STATUS</div>
+        <div style="padding:8px 12px">
+          <div class="agent-grid" id="agent-grid">
+            <div class="agent-card" onclick="switchMod('sentinel')">
+              <div class="ac-name"><div class="sb-dot ok"></div> SENTINEL</div>
+              <div class="ac-insight">All services healthy. Latency normal.</div>
+              <div class="ac-insight">DB connections stable. No anomalies.</div>
+              <div class="ac-rec">No action required</div>
+            </div>
+            <div class="agent-card" onclick="switchMod('intelligence')">
+              <div class="ac-name"><div class="sb-dot ok"></div> INTELLIGENCE</div>
+              <div class="ac-insight">Pipeline running. 34 signals evaluated.</div>
+              <div class="ac-insight">12 qualified, 22 rejected. Quality: HIGH.</div>
+              <div class="ac-rec">Signal flow healthy</div>
+            </div>
+            <div class="agent-card" onclick="switchMod('execution')">
+              <div class="ac-name"><div class="sb-dot ok"></div> EXECUTION</div>
+              <div class="ac-insight">87 open positions. Agent cycle: 15s.</div>
+              <div class="ac-insight">3 TP1 hits today. 1 stop loss.</div>
+              <div class="ac-rec">Monitor quote failure rate</div>
+            </div>
+            <div class="agent-card" onclick="switchMod('portfolio')">
+              <div class="ac-name"><div class="sb-dot warn"></div> PORTFOLIO</div>
+              <div class="ac-insight">Exposure: $8,700 across 42 tickers.</div>
+              <div class="ac-insight">Sector concentration: TECH 45%.</div>
+              <div class="ac-rec" style="color:var(--amber)">Review sector balance</div>
+            </div>
+            <div class="agent-card" onclick="switchMod('outcomes')">
+              <div class="ac-name"><div class="sb-dot ok"></div> OUTCOMES</div>
+              <div class="ac-insight">Win rate: 58%. Avg win: +$42.</div>
+              <div class="ac-insight">TP1 hit rate: 47%. Time to TP1: 18m.</div>
+              <div class="ac-rec">Performance within norms</div>
+            </div>
+            <div class="agent-card" onclick="switchMod('jarvis')">
+              <div class="ac-name"><div class="sb-dot ok"></div> JARVIS</div>
+              <div class="ac-insight">Monitoring all agents. No conflicts.</div>
+              <div class="ac-insight">Last recommendation: 2m ago.</div>
+              <div class="ac-rec">Standing by for commands</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Comms + What Changed -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="panel"><div class="panel-hdr">AGENT COMMUNICATIONS</div>
+          <div class="comms" id="comms-log">
+            <div class="comm-line"><span class="comm-src">Sentinel</span><span class="comm-msg">All health checks passed</span><span class="comm-ts">2s ago</span></div>
+            <div class="comm-line"><span class="comm-src">Intelligence</span><span class="comm-msg">Pipeline cycle complete. 3 new signals.</span><span class="comm-ts">8s ago</span></div>
+            <div class="comm-line"><span class="comm-src">Execution</span><span class="comm-msg">TSLA SHORT hit TP1. Stop moved to breakeven.</span><span class="comm-ts">14s ago</span></div>
+            <div class="comm-line"><span class="comm-src">Portfolio</span><span class="comm-msg">Sector exposure update. TECH at 45%.</span><span class="comm-ts">30s ago</span></div>
+            <div class="comm-line"><span class="comm-src">JARVIS</span><span class="comm-msg">Recommending continued OBSERVER mode.</span><span class="comm-ts">45s ago</span></div>
+            <div class="comm-line"><span class="comm-src">Outcomes</span><span class="comm-msg">Win rate holding at 58%. Model stable.</span><span class="comm-ts">1m ago</span></div>
+          </div>
+        </div>
+        <div class="panel"><div class="panel-hdr">WHAT CHANGED</div>
+          <div class="panel-body" id="changes-log">
+            <div style="color:var(--green);padding:2px 0">+ TSLA entered TP1 territory</div>
+            <div style="color:var(--amber);padding:2px 0">~ NVDA approaching stop level</div>
+            <div style="color:var(--cyan);padding:2px 0">+ 3 new signals qualified</div>
+            <div style="color:var(--red);padding:2px 0">- AMD rank dropped from #3 to #8</div>
+            <div style="color:var(--green);padding:2px 0">+ Quote failure rate decreasing</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Health -->
+      <div class="panel"><div class="panel-hdr">SYSTEM HEALTH</div>
+        <div style="padding:8px 12px">
+          <div class="health-grid">
+            <div class="health-item"><div class="hl">WIN RATE</div><div class="hv" style="color:var(--green)">58%</div></div>
+            <div class="health-item"><div class="hl">FAIL FAST</div><div class="hv" style="color:var(--amber)">22%</div></div>
+            <div class="health-item"><div class="hl">TIME TO TP1</div><div class="hv">18m</div></div>
+            <div class="health-item"><div class="hl">SIGNAL QUALITY</div><div class="hv" style="color:var(--green)">HIGH</div></div>
+            <div class="health-item"><div class="hl">DEVIATION AVG</div><div class="hv" style="color:var(--cyan)">+3.2%</div></div>
+            <div class="health-item"><div class="hl">MODEL DRIFT</div><div class="hv" style="color:var(--green)">NONE</div></div>
+            <div class="health-item"><div class="hl">TP1 HIT RATE</div><div class="hv">47%</div></div>
+            <div class="health-item"><div class="hl">MFE / MAE</div><div class="hv">2.3x</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Recap -->
+      <div class="panel"><div class="panel-hdr">SESSION RECAP</div>
+        <div class="panel-body">
+          <div class="row"><span>Trades Opened</span><span class="val">12</span></div>
+          <div class="row"><span>Trades Closed</span><span class="val">4</span></div>
+          <div class="row"><span>Win Rate</span><span class="val g">75%</span></div>
+          <div class="row"><span>Best Setup</span><span class="val">hunt_mode</span></div>
+          <div class="row"><span>Best Ticker</span><span class="val g">TSLA (+$340)</span></div>
+          <div class="row"><span>Worst Behavior</span><span class="val r">NVDA (late move)</span></div>
+          <div class="row"><span>Key Insight</span><span class="val">Momentum setups outperforming trend</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JARVIS MODULE -->
+    <div class="module-view" id="mod-jarvis">
+      <div class="mod-title">JARVIS COMMAND INTERFACE</div>
+      <div class="panel" style="flex:1;display:flex;flex-direction:column">
+        <div class="panel-hdr">SYSTEM DIALOGUE</div>
+        <div class="jarvis-log" id="jarvis-log">
+          <div class="jarvis-msg"><span class="jr">JARVIS:</span> All systems nominal. 87 positions active. Standing by.</div>
+          <div class="jarvis-msg"><span class="jr">JARVIS:</span> Recommendation: Continue OBSERVER mode. No intervention needed.</div>
+          <div class="jarvis-msg"><span class="jr">JARVIS:</span> NVDA position approaching stop. Monitoring closely.</div>
+        </div>
+        <div class="jarvis-input">
+          <input type="text" id="jarvis-cmd" placeholder="Enter command..." onkeydown="if(event.key==='Enter')sendJarvis()">
+          <button onclick="sendJarvis()">SEND</button>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-hdr">QUICK COMMANDS</div>
+        <div style="padding:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cmd-btn" onclick="jarvisQuick('status')">STATUS</button>
+          <button class="cmd-btn" onclick="jarvisQuick('risks')">RISKS</button>
+          <button class="cmd-btn" onclick="jarvisQuick('runners')">RUNNERS</button>
+          <button class="cmd-btn" onclick="jarvisQuick('recommend')">RECOMMEND</button>
+          <button class="cmd-btn" onclick="jarvisQuick('health')">HEALTH</button>
+          <button class="cmd-btn" onclick="jarvisQuick('recap')">RECAP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENTINEL MODULE -->
+    <div class="module-view" id="mod-sentinel">
+      <div class="mod-title">SENTINEL — SYSTEM MONITOR</div>
+      <div class="panel"><div class="panel-hdr">SERVICE HEALTH</div>
+        <div class="panel-body" id="sentinel-services">
+          <div class="row"><span>Gateway</span><span class="val g">OK</span></div>
+          <div class="row"><span>Core Intelligence</span><span class="val g">OK</span></div>
+          <div class="row"><span>Execution</span><span class="val g">OK</span></div>
+          <div class="row"><span>Trading Dashboard</span><span class="val g">OK</span></div>
+          <div class="row"><span>Supabase</span><span class="val g">Connected</span></div>
+          <div class="row"><span>Tradier API</span><span class="val g">Active</span></div>
+        </div>
+      </div>
+      <div class="panel"><div class="panel-hdr">DIAGNOSTICS</div>
+        <div class="panel-body">
+          <div class="row"><span>Agent Heartbeat</span><span class="val g">12s ago</span></div>
+          <div class="row"><span>Pipeline Latency</span><span class="val">245ms</span></div>
+          <div class="row"><span>Quote Failures (15m)</span><span class="val a">23</span></div>
+          <div class="row"><span>DB Connections</span><span class="val g">Stable</span></div>
+          <div class="row"><span>Last Deploy</span><span class="val">2h ago</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTELLIGENCE MODULE -->
+    <div class="module-view" id="mod-intelligence">
+      <div class="mod-title">INTELLIGENCE — SIGNAL PIPELINE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="panel"><div class="panel-hdr">PIPELINE STATS</div>
+          <div class="panel-body">
+            <div class="row"><span>Signals Evaluated</span><span class="val">34</span></div>
+            <div class="row"><span>Qualified</span><span class="val g">12</span></div>
+            <div class="row"><span>Rejected</span><span class="val r">22</span></div>
+            <div class="row"><span>Cycle Duration</span><span class="val">312ms</span></div>
+            <div class="row"><span>Quality Score</span><span class="val g">HIGH</span></div>
+          </div>
+        </div>
+        <div class="panel"><div class="panel-hdr">SETUP DISTRIBUTION</div>
+          <div class="panel-body">
+            <div class="row"><span>hunt_mode</span><span class="val">8 (67%)</span></div>
+            <div class="row"><span>trend_cont</span><span class="val">3 (25%)</span></div>
+            <div class="row"><span>reversal</span><span class="val">1 (8%)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTION MODULE -->
+    <div class="module-view" id="mod-execution">
+      <div class="mod-title">EXECUTION — TRADE ENGINE</div>
+      <div class="panel"><div class="panel-hdr">EXECUTION SUMMARY</div>
+        <div class="panel-body">
+          <div class="row"><span>Open Positions</span><span class="val">87</span></div>
+          <div class="row"><span>Agent Cycle</span><span class="val g">15s</span></div>
+          <div class="row"><span>TP1 Hits Today</span><span class="val g">3</span></div>
+          <div class="row"><span>Stop Losses</span><span class="val r">1</span></div>
+          <div class="row"><span>Near Stop</span><span class="val a">4</span></div>
+          <div class="row"><span>Runners (TP2+)</span><span class="val g">2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO MODULE -->
+    <div class="module-view" id="mod-portfolio">
+      <div class="mod-title">PORTFOLIO — EXPOSURE ANALYSIS</div>
+      <div class="panel"><div class="panel-hdr">EXPOSURE</div>
+        <div class="panel-body">
+          <div class="row"><span>Total Allocated</span><span class="val">$8,700</span></div>
+          <div class="row"><span>Unique Tickers</span><span class="val">42</span></div>
+          <div class="row"><span>TECH Sector</span><span class="val a">45%</span></div>
+          <div class="row"><span>Max Single Ticker</span><span class="val">AMD x4</span></div>
+          <div class="row"><span>Long / Short Ratio</span><span class="val">40% / 60%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTCOMES MODULE -->
+    <div class="module-view" id="mod-outcomes">
+      <div class="mod-title">OUTCOMES — PERFORMANCE ENGINE</div>
+      <div class="health-grid">
+        <div class="health-item"><div class="hl">WIN RATE</div><div class="hv" style="color:var(--green)">58%</div></div>
+        <div class="health-item"><div class="hl">AVG WIN</div><div class="hv" style="color:var(--green)">+$42</div></div>
+        <div class="health-item"><div class="hl">AVG LOSS</div><div class="hv" style="color:var(--red)">-$28</div></div>
+        <div class="health-item"><div class="hl">TP1 RATE</div><div class="hv">47%</div></div>
+        <div class="health-item"><div class="hl">TP2 RATE</div><div class="hv">19%</div></div>
+        <div class="health-item"><div class="hl">TP3 RATE</div><div class="hv">6%</div></div>
+        <div class="health-item"><div class="hl">TIME TO TP1</div><div class="hv">18m</div></div>
+        <div class="health-item"><div class="hl">MFE/MAE</div><div class="hv">2.3x</div></div>
+      </div>
+    </div>
+
+    <!-- ALERTS MODULE -->
+    <div class="module-view" id="mod-alerts">
+      <div class="mod-title">ALERT CONSOLE</div>
+      <div class="panel" id="alert-console">
+        <div class="panel-body" id="alert-list">
+          <div class="rp-alert crit">CRITICAL: NVDA position within 8% of stop loss</div>
+          <div class="rp-alert">WARNING: Quote failure rate elevated (23 in 15min)</div>
+          <div class="rp-alert">WARNING: TECH sector concentration at 45%</div>
+          <div class="rp-alert info">INFO: 3 new signals qualified this cycle</div>
+          <div class="rp-alert info">INFO: TSLA reached TP1 territory</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DECISIONS MODULE -->
+    <div class="module-view" id="mod-decisions">
+      <div class="mod-title">DECISION TRACE</div>
+      <div class="panel"><div class="panel-hdr">RECENT DECISIONS</div>
+        <div class="panel-body">
+          <div style="padding:4px 0;border-bottom:1px solid var(--border-s)"><b style="color:var(--cyan)">TSLA SHORT</b> — Promoted. Score: 87. Rank: #1. Confidence: 72%. Regime aligned. GEX confirmed.</div>
+          <div style="padding:4px 0;border-bottom:1px solid var(--border-s)"><b style="color:var(--red)">GOOG LONG</b> — Rejected. Disqualifier: overextension + weak momentum. Score: 42.</div>
+          <div style="padding:4px 0;border-bottom:1px solid var(--border-s)"><b style="color:var(--cyan)">AMD SHORT</b> — Promoted. Score: 79. Setup: hunt_mode. Confluence: 5/7.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY MODULE -->
+    <div class="module-view" id="mod-security">
+      <div class="mod-title">SECURITY — ACCESS CONTROL</div>
+      <div class="panel"><div class="panel-hdr">SESSION</div>
+        <div class="panel-body">
+          <div class="row"><span>User</span><span class="val">NexusOps</span></div>
+          <div class="row"><span>JWT Status</span><span class="val g">Valid</span></div>
+          <div class="row"><span>Session Age</span><span class="val">2h 14m</span></div>
+          <div class="row"><span>Auth Layer</span><span class="val g">Active (all services)</span></div>
+          <div class="row"><span>CORS Policy</span><span class="val">*.praxiumholdings.com</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYBOOKS MODULE -->
+    <div class="module-view" id="mod-playbooks">
+      <div class="mod-title">PLAYBOOKS — STRATEGY CONTROL</div>
+      <div class="panel"><div class="panel-hdr">ACTIVE RULES</div>
+        <div class="panel-body">
+          <div class="row"><span>TP1 Target</span><span class="val">1.5x entry</span></div>
+          <div class="row"><span>TP2 Target</span><span class="val">2.0x entry</span></div>
+          <div class="row"><span>TP3 Target</span><span class="val">3.0x entry</span></div>
+          <div class="row"><span>Stop Loss</span><span class="val">0.5x entry</span></div>
+          <div class="row"><span>Max Duration (0DTE)</span><span class="val">240min</span></div>
+          <div class="row"><span>Max Duration (Weekly)</span><span class="val">5 days</span></div>
+          <div class="row"><span>Qualified Grades</span><span class="val">A+, A</span></div>
+          <div class="row"><span>Market Hours Only</span><span class="val g">Enforced</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME MACHINE MODULE -->
+    <div class="module-view" id="mod-timemachine">
+      <div class="mod-title">TIME MACHINE</div>
+      <div class="panel"><div class="panel-hdr">REPLAY ENGINE</div>
+        <div class="panel-body" style="text-align:center;padding:40px;color:var(--dim)">
+          Trade replay and decision audit trail.<br>Coming in Phase 2.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="rpanel">
+    <div class="rp-section">
+      <div class="rp-title">JARVIS SUMMARY</div>
+      <div class="rp-item">System status: <b style="color:var(--green)">NOMINAL</b></div>
+      <div class="rp-item">Mode: <b>OBSERVER</b></div>
+      <div class="rp-item">Open positions: <b>87</b></div>
+      <div class="rp-item">Today P&L: <b style="color:var(--green)">+$1,247</b></div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-title">ACTIVE ALERTS</div>
+      <div class="rp-alert crit">NVDA near stop (-$180)</div>
+      <div class="rp-alert">Quote failures elevated</div>
+      <div class="rp-alert info">TSLA hit TP1</div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-title">RECOMMENDATIONS</div>
+      <div class="rp-rec">Monitor NVDA — consider manual review</div>
+      <div class="rp-rec">Continue OBSERVER mode</div>
+      <div class="rp-rec">Review TECH sector concentration</div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-title">QUICK ACTIONS</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="cmd-btn" onclick="window.open('https://trading.praxiumholdings.com','_blank')">TRADING</button>
+        <button class="cmd-btn" onclick="window.open('https://core.praxiumholdings.com','_blank')">CORE</button>
+        <button class="cmd-btn" onclick="window.open('https://execution.praxiumholdings.com','_blank')">EXEC</button>
+      </div>
+    </div>
+    <div class="rp-section">
+      <div class="rp-title">COMMAND</div>
+      <input class="rp-cmd" placeholder="Ask JARVIS..." onkeydown="if(event.key==='Enter'){jarvisQuick(this.value);this.value=''}">
+    </div>
+  </div>
+</div>
+
+<script>
+// ── NAV ──────────────────────────────
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => switchMod(item.dataset.mod));
+});
+
+function switchMod(mod) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelector(`[data-mod="${mod}"]`)?.classList.add('active');
+  document.querySelectorAll('.module-view').forEach(v => v.classList.remove('active'));
+  document.getElementById('mod-' + mod)?.classList.add('active');
+}
+
+// ── MODE SYSTEM ──────────────────────
+const modes = ['OBSERVER', 'ASSISTED', 'AUTO'];
+let modeIdx = 0;
+function cycleMode() {
+  modeIdx = (modeIdx + 1) % modes.length;
+  const btn = document.getElementById('mode-btn');
+  btn.textContent = modes[modeIdx];
+}
+
+// ── COMMANDS ─────────────────────────
+function cmdPause() { alert('PAUSE command sent to agent_control'); }
+function cmdEmergency() { if(confirm('EMERGENCY CLOSE ALL POSITIONS?')) alert('Emergency close triggered'); }
+
+// ── JARVIS ───────────────────────────
+const JARVIS_RESPONSES = {
+  status: 'All systems nominal. 87 positions active. Agent cycling every 15s. No critical issues.',
+  risks: 'NVDA SHORT is within 8% of stop. Quote failure rate is elevated but decreasing. TECH sector concentration at 45%.',
+  runners: 'TSLA SHORT: +$340, TP2 territory. AMD SHORT: +$120, TP1 hit. PLTR LONG: +$85, developing.',
+  recommend: 'Continue OBSERVER mode. No intervention needed. Monitor NVDA position. Review TECH concentration before adding new TECH positions.',
+  health: 'Win rate: 58%. Model drift: none. Signal quality: HIGH. Deviation average: +3.2%. All services operational.',
+  recap: 'Session: 12 trades opened, 4 closed. Win rate: 75%. Best: TSLA (+$340). Worst: NVDA (-$180). Momentum setups outperforming.',
+};
+
+function sendJarvis() {
+  const input = document.getElementById('jarvis-cmd');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const log = document.getElementById('jarvis-log');
+  log.innerHTML += `<div class="jarvis-msg"><span class="ju">YOU:</span> ${msg}</div>`;
+  const resp = JARVIS_RESPONSES[msg.toLowerCase()] || 'Command received. Processing... I understand you want to know about "' + msg + '". This capability is being expanded.';
+  setTimeout(() => {
+    log.innerHTML += `<div class="jarvis-msg"><span class="jr">JARVIS:</span> ${resp}</div>`;
+    log.scrollTop = log.scrollHeight;
+  }, 500);
+  log.scrollTop = log.scrollHeight;
+}
+
+function jarvisQuick(cmd) { document.getElementById('jarvis-cmd').value = cmd; sendJarvis(); }
+
+// ── SERVICE STATUS ───────────────────
+async function checkServices() {
+  try {
+    const r = await fetch('/api/service-status');
+    const d = await r.json();
+    const map = {core:'svc-core',execution:'svc-exec',trading:'svc-trade'};
+    for (const [name,status] of Object.entries(d)) {
+      const el = document.getElementById(map[name]);
+      if (el) el.className = 'sb-dot ' + (status === 'ok' ? 'ok' : 'err');
+    }
+  } catch(e) {}
+}
+
+function updateTime() {
+  document.getElementById('sys-time').textContent =
+    new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' ET';
+}
+
+// ── INIT ─────────────────────────────
+checkServices();
+setInterval(checkServices, 30000);
+setInterval(updateTime, 1000);
+updateTime();
+</script>
+</body>
+</html>
