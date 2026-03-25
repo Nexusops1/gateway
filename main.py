@@ -178,6 +178,59 @@ def service_status(user=Depends(require_auth)):
     return results
 
 
+# ── NEXUS Proxy Endpoints (all data flows through gateway) ────────────────────
+def _proxy(service: str, path: str):
+    """Proxy a request to a backend service. Returns JSON or error."""
+    url = SERVICES.get(service, "")
+    if not url:
+        return {"error": "unknown service", "data": None}
+    try:
+        r = httpx.get(f"{url}{path}", timeout=10)
+        return r.json()
+    except Exception:
+        return {"error": "service unavailable", "data": None}
+
+
+@app.get("/api/nexus/stats")
+def nexus_stats(user=Depends(require_auth)):
+    return _proxy("trading", "/api/stats")
+
+
+@app.get("/api/nexus/positions")
+def nexus_positions(user=Depends(require_auth)):
+    return _proxy("trading", "/api/positions")
+
+
+@app.get("/api/nexus/pipeline")
+def nexus_pipeline(user=Depends(require_auth)):
+    return _proxy("core", "/api/pipeline-stats")
+
+
+@app.get("/api/nexus/signal")
+def nexus_signal(user=Depends(require_auth)):
+    return _proxy("core", "/api/primary-signal")
+
+
+@app.get("/api/nexus/closed")
+def nexus_closed(user=Depends(require_auth)):
+    return _proxy("trading", "/api/trades/today")
+
+
+@app.get("/api/nexus/account")
+def nexus_account(user=Depends(require_auth)):
+    return _proxy("trading", "/api/account")
+
+
+@app.get("/api/nexus/agent")
+def nexus_agent(user=Depends(require_auth)):
+    return _proxy("trading", "/api/agent/status")
+
+
+@app.get("/api/nexus/system-stats")
+def nexus_system_stats(user=Depends(require_auth)):
+    return _proxy("trading", "/api/system-stats")
+
+
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))

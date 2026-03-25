@@ -3,490 +3,745 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEXUS // COMMAND CENTER</title>
+<title>NEXUS // COMMAND CENTER v2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{
-  --void:#000;--deep:#050810;--surface:#080c12;--surface-2:#0d1520;
-  --cyan:#00e5ff;--cyan-b:#33eeff;--cyan-d:#00b8cc;
-  --glow:rgba(0,229,255,0.4);--faint:rgba(0,229,255,0.08);
-  --green:#00ff88;--amber:#ffaa00;--red:#ff3333;
-  --white:#fff;--grey:#888;--grey-d:#444;
+  --void:#000;--deep:#050810;--surface:#080c12;--surface2:#0d1520;
+  --cyan:#00e5ff;--cyand:#00b8cc;--cyanglow:rgba(0,229,255,0.25);--cyanfaint:rgba(0,229,255,0.08);
+  --green:#00ff88;--amber:#ffaa00;--red:#ff3333;--white:#fff;--grey:#aaa;--muted:#666;--dim:#445;
+  --border:rgba(0,229,255,0.15);--border2:rgba(0,229,255,0.08);
+  --fo:'Orbitron',sans-serif;--fm:'Share Tech Mono',monospace;--fu:'Rajdhani',sans-serif;
   --ease:cubic-bezier(0.16,1,0.3,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--void);color:var(--grey);font-family:'Rajdhani',sans-serif;
-  min-height:100vh;overflow-x:hidden;letter-spacing:0.1em;
-  background:radial-gradient(ellipse at center,#0a101a 0%,#000 70%)}
-body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px)}
+html,body{height:100vh;overflow:hidden}
+body{background:var(--void);color:var(--grey);font-family:var(--fm);font-size:12px;
+  display:flex;flex-direction:column;letter-spacing:0.04em}
+body::after{content:'';position:fixed;inset:0;z-index:99999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px)}
 
-/* ── HEADER ──────────────────────── */
-.hdr{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 24px;background:var(--deep);border-bottom:1px solid var(--cyan-d);
-  box-shadow:0 1px 20px rgba(0,229,255,0.15);position:relative;z-index:10;
-  opacity:0;animation:fadeIn .5s var(--ease) forwards}
-.hdr-left{display:flex;align-items:center;gap:14px}
-.hdr-nexus{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;
-  color:var(--cyan);letter-spacing:0.2em;text-shadow:0 0 12px var(--glow)}
-.hdr-sub{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--grey);font-weight:500}
-.hdr-right{display:flex;align-items:center;gap:14px;font-size:11px}
-.online-dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);
-  box-shadow:0 0 8px var(--cyan);animation:dotPulse 3s ease-in-out infinite}
-@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.7)}}
-.logout{color:var(--cyan-d);text-decoration:none;border:1px solid var(--cyan-d);
-  padding:4px 12px;font-size:10px;letter-spacing:0.15em;font-family:'Rajdhani',sans-serif;
-  font-weight:600;background:transparent;cursor:pointer;transition:all .2s var(--ease)}
-.logout:hover{background:rgba(0,229,255,0.1);border-color:var(--cyan);color:var(--cyan)}
+/* STATUS BAR */
+.sbar{display:flex;align-items:center;padding:0 14px;height:36px;background:var(--deep);
+  border-bottom:1px solid var(--border);flex-shrink:0;z-index:10;gap:10px}
+.s-logo{font-family:var(--fo);font-size:14px;font-weight:700;color:var(--cyan);letter-spacing:0.15em;
+  text-shadow:0 0 8px var(--cyanglow)}
+.s-mode{font-family:var(--fu);font-size:10px;font-weight:600;padding:2px 10px;
+  border:1px solid var(--cyand);color:var(--cyan);cursor:pointer;letter-spacing:0.1em;transition:all .15s}
+.s-mode:hover{background:rgba(0,229,255,0.08)}
+.s-svcs{display:flex;gap:8px;margin-left:12px}
+.s-svc{display:flex;flex-direction:column;align-items:center;gap:1px}
+.s-dot{width:7px;height:7px;border-radius:50%}
+.s-dot.ok{background:var(--green);box-shadow:0 0 4px var(--green)}
+.s-dot.err{background:var(--red);box-shadow:0 0 4px var(--red)}
+.s-dot.off{background:var(--dim)}
+.s-svc span{font-size:7px;color:var(--muted);letter-spacing:0.08em}
+.s-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.s-time{font-size:11px;color:var(--cyand);font-weight:600}
+.s-user{font-size:10px;color:var(--muted)}
+.s-btn{font-family:var(--fm);font-size:9px;padding:3px 8px;background:transparent;
+  border:1px solid var(--dim);color:var(--grey);cursor:pointer;letter-spacing:0.06em;transition:all .15s;text-decoration:none}
+.s-btn:hover{border-color:var(--cyan);color:var(--cyan)}
 
-/* ── LAYOUT ──────────────────────── */
-.wrap{display:flex;gap:16px;padding:16px 24px;position:relative;z-index:2}
-.col-l{flex:0 0 58%;display:flex;flex-direction:column;gap:14px}
-.col-r{flex:1;display:flex;flex-direction:column;gap:12px}
+/* APP LAYOUT */
+.app{display:flex;flex:1;min-height:0}
 
-/* ── STAT BOXES ──────────────────── */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
-  opacity:0;animation:slideUp .4s var(--ease) .2s forwards}
-.sbox{background:var(--surface-2);border:1px solid #00b8cc;border-top:2px solid #00e5ff;
-  padding:10px 12px;text-align:center;
-  clip-path:polygon(3px 0,calc(100% - 3px) 0,100% 3px,100% calc(100% - 3px),calc(100% - 3px) 100%,3px 100%,0 calc(100% - 3px),0 3px);
-  box-shadow:0 0 12px rgba(0,229,255,0.25),inset 0 0 8px rgba(0,229,255,0.05)}
-.sbox .lb{font-size:9px;color:#aaa;letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
-.sbox .vl{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;
-  color:var(--cyan);margin-top:4px;text-shadow:0 0 8px rgba(0,229,255,0.2);
-  transition:text-shadow .3s}
-.sbox .vl.flash{text-shadow:0 0 16px var(--glow)}
-.sbox .vl.g{color:var(--green)}.sbox .vl.r{color:var(--red)}.sbox .vl.a{color:var(--amber)}
+/* LEFT NAV */
+.nav{width:180px;background:var(--deep);border-right:1px solid var(--border);
+  flex-shrink:0;overflow-y:auto;padding:6px 0;
+  scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.nav::-webkit-scrollbar{width:3px}
+.nav::-webkit-scrollbar-thumb{background:var(--dim)}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;
+  font-family:var(--fu);font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:0.1em;border-left:3px solid transparent;transition:all .12s}
+.ni:hover{color:var(--grey);background:rgba(0,229,255,0.03)}
+.ni.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,229,255,0.06)}
+.ni .nd{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 
-/* ── SONAR ───────────────────────── */
-.sonar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:100%;position:relative;min-height:0;
-  opacity:0;animation:fadeIn .5s var(--ease) .4s forwards}
-.sonar-canvas{display:block;margin:0 auto;max-width:100%}
-.sonar-labels{display:flex;justify-content:space-between;width:100%;padding:6px 4px 0;font-size:9px}
-.sonar-labels span{font-family:'Share Tech Mono',monospace}
-.sonar-labels .ll{color:#aaa}.sonar-labels .lc{color:var(--cyan-d)}
-.sonar-labels .lr{color:#aaa}
+/* CENTER */
+.center{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0;
+  scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.center::-webkit-scrollbar{width:4px}
+.center::-webkit-scrollbar-thumb{background:var(--dim);border-radius:2px}
 
-/* ── TILES ───────────────────────── */
-.tile{background:var(--surface-2);background:linear-gradient(180deg,var(--surface-2),var(--surface));
-  border:1px solid rgba(0,184,204,0.2);border-left:3px solid var(--cyan);
-  padding:16px 16px 16px 18px;text-decoration:none;color:inherit;display:block;
-  transition:all .3s var(--ease);cursor:pointer;
-  opacity:0;animation:slideLeft .4s var(--ease) forwards}
-.tile:nth-child(1){animation-delay:.6s}.tile:nth-child(3){animation-delay:.7s}.tile:nth-child(5){animation-delay:.8s}
-.tile:hover{background:var(--surface-2);border-color:var(--cyan);
-  box-shadow:0 0 12px rgba(0,229,255,0.1)}
-.tile:hover .tile-link{transform:translateX(4px);color:var(--cyan);text-shadow:0 0 6px var(--glow)}
-.tile-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.tile-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;
-  color:var(--cyan);letter-spacing:0.1em;text-shadow:0 0 6px rgba(0,229,255,0.15)}
-.tile-dot{width:8px;height:8px;border-radius:50%;background:var(--grey-d);flex-shrink:0}
-.tile-dot.ok{background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:dotPulse 3s ease-in-out infinite}
-.tile-dot.down{background:var(--red);box-shadow:0 0 4px var(--red)}
-.tile-desc{font-family:'Rajdhani',sans-serif;font-size:12px;color:#aaa;line-height:1.6;margin-bottom:8px;font-weight:500}
-.tile-bot{display:flex;align-items:center;justify-content:space-between;font-size:10px}
-.tile-url{font-family:'Share Tech Mono',monospace;color:#aaa}
-.tile-link{font-family:'Rajdhani',sans-serif;font-weight:600;font-size:11px;color:var(--cyan-d);
-  text-decoration:none;transition:all .2s var(--ease)}
-.tile-sep{height:1px;background:linear-gradient(90deg,transparent 10%,rgba(0,184,204,0.15) 50%,transparent 90%);
-  position:relative;margin:2px 0}
-.tile-sep::after{content:'\u25C6';position:absolute;left:50%;top:-5px;transform:translateX(-50%);
-  font-size:8px;color:rgba(0,184,204,0.25)}
+/* RIGHT PANEL */
+.rpanel{width:280px;background:var(--deep);border-left:1px solid var(--border);
+  flex-shrink:0;overflow-y:auto;display:flex;flex-direction:column;
+  scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.rpanel::-webkit-scrollbar{width:3px}
+.rpanel::-webkit-scrollbar-thumb{background:var(--dim)}
+.rps{padding:10px 12px;border-bottom:1px solid var(--border2)}
+.rps-t{font-family:var(--fo);font-size:8px;color:var(--cyand);letter-spacing:0.2em;margin-bottom:6px}
+.rps-i{font-size:10px;padding:2px 0;line-height:1.5}
+.rps-i b{color:var(--white);font-weight:500}
+.rps-alert{font-size:10px;padding:4px 8px;margin:3px 0;border-left:2px solid var(--amber);
+  background:rgba(255,170,0,0.03);line-height:1.4}
+.rps-alert.crit{border-left-color:var(--red);background:rgba(255,51,51,0.03)}
+.rps-alert.info{border-left-color:var(--cyand);background:rgba(0,229,255,0.02)}
+.rps-rec{font-size:10px;padding:4px 8px;margin:2px 0;background:rgba(0,229,255,0.03);
+  border:1px solid var(--border2);line-height:1.4}
+.rps-cmd{width:100%;padding:6px 8px;background:var(--surface);border:1px solid var(--border2);
+  color:var(--grey);font-family:var(--fm);font-size:10px;outline:none}
+.rps-cmd:focus{border-color:var(--cyan)}
+.rps-log{max-height:100px;overflow-y:auto;font-size:10px;margin-bottom:4px;
+  scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.rps-log div{padding:2px 0;border-bottom:1px solid var(--border2)}
+.rps-log .src{color:var(--cyand)}
 
-/* ── STATUS BAR ──────────────────── */
-.sbar{padding:8px 14px;background:var(--surface);border-top:1px solid rgba(0,184,204,0.15);
-  display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#aaa}
-.sbar .v{color:var(--cyan);font-family:'Share Tech Mono',monospace}
+/* PANELS */
+.pnl{background:var(--surface);border:1px solid var(--border2)}
+.pnl-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-bottom:1px solid var(--border2);font-family:var(--fo);font-size:8px;
+  color:var(--cyand);letter-spacing:0.2em}
+.pnl-b{padding:10px 12px;font-size:11px;line-height:1.6}
+.row{display:flex;justify-content:space-between;padding:2px 0}
+.v{color:var(--white)}.g{color:var(--green)}.r{color:var(--red)}.a{color:var(--amber)}.c{color:var(--cyan)}
 
-/* ── INTEL FEED ──────────────────── */
-.intel{background:var(--surface);border:1px solid rgba(0,184,204,0.15);overflow:hidden;height:160px;position:relative;flex-shrink:0}
-.intel-hdr{display:flex;align-items:center;gap:6px;padding:6px 12px;
-  border-bottom:1px solid rgba(0,184,204,0.1);font-family:'Orbitron',sans-serif;
-  font-size:9px;color:var(--cyan-d);letter-spacing:0.15em}
-.intel-dot{width:5px;height:5px;border-radius:50%;background:var(--cyan-d);animation:dotPulse 2s ease-in-out infinite}
-.intel-body{padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.7}
-.intel-line{color:#444;transition:color .5s}
-.intel-line.active{color:#aaa}
-.intel-line.newest{color:#ccc}
-.intel-cursor{display:inline-block;width:6px;height:12px;background:var(--cyan);
-  animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+/* MISSION */
+.mission{background:var(--surface2);border:1px solid var(--border2);border-left:3px solid var(--cyan);padding:12px 14px}
+.mission-t{font-family:var(--fo);font-size:9px;color:var(--cyan);letter-spacing:0.15em;margin-bottom:6px}
+.mission-b{font-size:11px;line-height:1.7;color:var(--grey)}
+.mission-b b{color:var(--white);font-weight:500}
 
-/* ── SIGNAL TABLE ────────────────── */
-.sig-panel{margin:0 24px 24px;border:1px solid #00b8cc;background:var(--surface);
-  box-shadow:0 0 12px rgba(0,229,255,0.15);
-  opacity:0;animation:fadeIn .4s var(--ease) .9s forwards}
-.sig-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--cyan);
-  letter-spacing:0.15em;padding:10px 14px;border-bottom:1px solid rgba(0,184,204,0.1)}
-.sig-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.sig-tbl th{font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;
-  color:#aaa;letter-spacing:0.2em;text-transform:uppercase;
-  text-align:left;padding:6px 14px;border-bottom:1px solid rgba(0,229,255,0.06)}
-.sig-tbl td{font-family:'Share Tech Mono',monospace;padding:6px 14px;
-  border-bottom:1px solid rgba(0,229,255,0.04)}
-.sig-tbl tr:nth-child(even) td{background:rgba(0,229,255,0.015)}
-.sig-tbl tr{animation:rowIn .3s var(--ease)}
-.q{color:var(--cyan)}.m{color:var(--amber)}.gn{color:var(--green)}.rd{color:var(--red)}
+/* GRIDS */
+.g6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g24{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ac{background:var(--surface2);border:1px solid var(--border2);padding:10px;cursor:pointer;transition:all .15s}
+.ac:hover{border-color:var(--cyand);box-shadow:0 0 6px rgba(0,229,255,0.06)}
+.ac-n{font-family:var(--fu);font-size:11px;font-weight:700;color:var(--white);margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.ac-i{font-size:10px;color:var(--grey);line-height:1.4}
+.hm{background:var(--surface2);border:1px solid var(--border2);padding:8px;text-align:center}
+.hm .hl{font-size:8px;color:var(--muted);letter-spacing:0.1em}
+.hm .hv{font-family:var(--fo);font-size:15px;font-weight:700;color:var(--white);margin-top:2px}
 
-/* ── ANIMATIONS ──────────────────── */
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes slideLeft{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
-@keyframes rowIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+/* MODULE VIEWS */
+.mod{display:none;flex-direction:column;gap:12px}
+.mod.active{display:flex}
+.mod-t{font-family:var(--fo);font-size:12px;font-weight:700;color:var(--cyan);letter-spacing:0.1em}
 
-/* ── RESPONSIVE ──────────────────── */
-@media(max-width:900px){.wrap{flex-direction:column}.col-l,.col-r{flex:auto}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11px}
+.tbl th{font-family:var(--fu);font-size:9px;font-weight:600;color:var(--muted);letter-spacing:0.15em;
+  text-align:left;padding:6px 10px;border-bottom:1px solid var(--border2)}
+.tbl td{padding:6px 10px;border-bottom:1px solid var(--border2)}
+.tbl tr:hover td{background:rgba(0,229,255,0.02)}
+.tbl .tk{color:var(--white);font-weight:700}
+
+/* JARVIS */
+.j-log{flex:1;overflow-y:auto;padding:10px;background:#000;font-size:11px;line-height:1.7;
+  min-height:200px;max-height:400px;scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
+.j-msg{padding:3px 0}.j-r{color:var(--cyan)}.j-u{color:var(--white)}
+.j-in{display:flex;gap:6px;padding:8px 10px;background:var(--surface);border-top:1px solid var(--border2)}
+.j-in input{flex:1;padding:8px;background:#000;border:1px solid var(--border2);
+  color:var(--white);font-family:var(--fm);font-size:11px;outline:none}
+.j-in input:focus{border-color:var(--cyan)}
+.j-in button{padding:8px 14px;background:var(--cyan);color:var(--void);border:none;
+  font-family:var(--fm);font-size:10px;font-weight:600;cursor:pointer;letter-spacing:0.1em}
+.j-qb{display:flex;gap:4px;flex-wrap:wrap;padding:6px 10px}
+.j-qb button{font-family:var(--fm);font-size:9px;padding:4px 8px;background:transparent;
+  border:1px solid var(--border2);color:var(--grey);cursor:pointer;transition:all .12s;letter-spacing:0.06em}
+.j-qb button:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* BARS */
+.bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin:2px 0}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s var(--ease)}
+
+/* PLAYBOOK CARDS */
+.pb-card{background:var(--surface2);border:1px solid var(--border2);padding:12px;text-align:center}
+.pb-name{font-family:var(--fo);font-size:9px;color:var(--cyan);letter-spacing:0.1em;margin-bottom:4px}
+.pb-val{font-size:16px;font-weight:700;color:var(--white);margin-bottom:4px}
+.pb-desc{font-size:9px;color:var(--muted);line-height:1.4}
+.pb-badge{font-size:8px;color:var(--green);margin-top:4px}
+
+/* TIME MACHINE PLACEHOLDER */
+.tm-center{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;min-height:300px;text-align:center;position:relative}
+.tm-frame{width:260px;height:180px;border:1px solid var(--cyand);display:flex;align-items:center;
+  justify-content:center;flex-direction:column;gap:8px;position:relative}
+.tm-frame::before,.tm-frame::after{content:'';position:absolute;width:16px;height:16px;
+  border-color:var(--cyan);border-style:solid}
+.tm-frame::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.tm-frame::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.tm-sym{font-size:36px;color:var(--cyan);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.tm-title{font-family:var(--fo);font-size:16px;color:var(--cyan);letter-spacing:0.2em}
+.tm-ph{font-size:10px;color:var(--muted);margin-top:8px;letter-spacing:0.15em}
+
+/* LOADING */
+.loading{color:var(--cyand);font-size:10px;padding:8px;letter-spacing:0.1em}
+
+/* MOBILE BLOCK */
+@media(max-width:1279px){
+  .sbar,.app{display:none!important}
+  body::before{content:'NEXUS COMMAND CENTER — Desktop Required (1280px+)';
+    display:flex;align-items:center;justify-content:center;height:100vh;
+    font-family:var(--fo);font-size:14px;color:var(--cyan);letter-spacing:0.15em;text-align:center;padding:20px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 :focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="hdr">
-  <div class="hdr-left">
-    <span class="hdr-nexus">NEXUS</span>
-    <span class="hdr-sub">COMMAND CENTER // GATEWAY</span>
+<!-- STATUS BAR -->
+<div class="sbar">
+  <span class="s-logo">NEXUS</span>
+  <span class="s-mode" id="mode-btn" onclick="cycleMode()">OBSERVER</span>
+  <div class="s-svcs">
+    <div class="s-svc"><div class="s-dot off" id="d-gw"></div><span>GW</span></div>
+    <div class="s-svc"><div class="s-dot off" id="d-core"></div><span>CORE</span></div>
+    <div class="s-svc"><div class="s-dot off" id="d-exec"></div><span>EXEC</span></div>
+    <div class="s-svc"><div class="s-dot off" id="d-trade"></div><span>TRADE</span></div>
+    <div class="s-svc"><div class="s-dot off"></div><span>SNTL</span></div>
+    <div class="s-svc"><div class="s-dot off"></div><span>JARVIS</span></div>
   </div>
-  <div class="hdr-right">
-    <span class="online-dot"></span>
-    <span style="color:var(--cyan)">ONLINE</span>
-    <span>NexusOps</span>
-    <span id="clock" style="font-family:'Share Tech Mono',monospace;color:#aaa"></span>
-    <a href="/auth/logout" class="logout">LOGOUT</a>
-  </div>
-</header>
-
-<!-- MAIN -->
-<div class="wrap">
-  <!-- LEFT -->
-  <div class="col-l">
-    <div class="stats">
-      <div class="sbox"><div class="lb">Open Positions</div><div class="vl" id="st-open">--</div></div>
-      <div class="sbox"><div class="lb">Today P&amp;L</div><div class="vl" id="st-pnl">--</div></div>
-      <div class="sbox"><div class="lb">Signals Today</div><div class="vl" id="st-sig">--</div></div>
-      <div class="sbox"><div class="lb">Agent Status</div><div class="vl" id="st-agent">--</div></div>
-      <div class="sbox"><div class="lb">Win Rate</div><div class="vl" id="st-wr">--</div></div>
-      <div class="sbox"><div class="lb">Trades Today</div><div class="vl" id="st-trd">--</div></div>
-    </div>
-    <div class="sonar-wrap">
-      <canvas id="sonar" class="sonar-canvas"></canvas>
-      <div class="sonar-labels">
-        <span class="ll">SIGNAL ACQUISITION SYSTEM</span>
-        <span class="lc" id="tracking-label">TRACKING 0 SIGNALS</span>
-        <span class="lr">PRAXIUM HOLDINGS // NEXUS LABS</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT -->
-  <div class="col-r">
-    <a class="tile" href="https://core.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="tile-top"><div class="tile-name">CORE INTELLIGENCE</div><div class="tile-dot" id="dot-core"></div></div>
-      <div class="tile-desc">Signal pipeline, judgment layer, market data aggregation. The brain of NEXUS.</div>
-      <div class="tile-bot"><span class="tile-url">core.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
-    </a>
-    <div class="tile-sep"></div>
-    <a class="tile" href="https://execution.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="tile-top"><div class="tile-name">EXECUTION</div><div class="tile-dot" id="dot-execution"></div></div>
-      <div class="tile-desc">Scanner, options engine, paper trading agent, autonomous signal execution.</div>
-      <div class="tile-bot"><span class="tile-url">execution.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
-    </a>
-    <div class="tile-sep"></div>
-    <a class="tile" href="https://trading.praxiumholdings.com" target="_blank" rel="noopener">
-      <div class="tile-top"><div class="tile-name">TRADING</div><div class="tile-dot" id="dot-trading"></div></div>
-      <div class="tile-desc">Portfolio monitor, open positions, P&L tracking, agent controls.</div>
-      <div class="tile-bot"><span class="tile-url">trading.praxiumholdings.com</span><span class="tile-link">CONNECT &rarr;</span></div>
-    </a>
-
-    <div class="sbar">
-      <span>LAST CHECK <span class="v" id="last-check">--</span></span>
-      <span>SERVICES <span class="v" id="svc-count">--</span></span>
-    </div>
-
-    <div class="intel">
-      <div class="intel-hdr"><span class="intel-dot"></span> INTEL FEED</div>
-      <div class="intel-body" id="intel-body"></div>
-    </div>
+  <div class="s-right">
+    <span class="s-time" id="clock"></span>
+    <span class="s-user">NexusOps</span>
+    <a href="/auth/logout" class="s-btn">LOGOUT</a>
   </div>
 </div>
 
-<!-- SIGNAL TABLE -->
-<div class="sig-panel">
-  <div class="sig-title">LIVE SIGNAL INTELLIGENCE</div>
-  <table class="sig-tbl">
-    <thead><tr><th>Time</th><th>Ticker</th><th>Dir</th><th>Grade</th><th>Setup</th><th>Status</th></tr></thead>
-    <tbody id="sig-body"></tbody>
-  </table>
+<!-- APP -->
+<div class="app">
+<!-- NAV -->
+<div class="nav" id="nav">
+  <div class="ni active" data-m="overview"><div class="nd" style="background:var(--cyan)"></div>OVERVIEW</div>
+  <div class="ni" data-m="jarvis"><div class="nd" style="background:var(--cyan)"></div>JARVIS</div>
+  <div class="ni" data-m="sentinel"><div class="nd" style="background:var(--green)"></div>SENTINEL</div>
+  <div class="ni" data-m="intelligence"><div class="nd" style="background:var(--green)"></div>INTELLIGENCE</div>
+  <div class="ni" data-m="execution"><div class="nd" style="background:var(--green)"></div>EXECUTION</div>
+  <div class="ni" data-m="portfolio"><div class="nd" style="background:var(--amber)"></div>PORTFOLIO</div>
+  <div class="ni" data-m="outcomes"><div class="nd" style="background:var(--green)"></div>OUTCOMES</div>
+  <div class="ni" data-m="alerts"><div class="nd" style="background:var(--amber)"></div>ALERTS</div>
+  <div class="ni" data-m="decisions"><div class="nd" style="background:var(--green)"></div>DECISIONS</div>
+  <div class="ni" data-m="security"><div class="nd" style="background:var(--green)"></div>SECURITY</div>
+  <div class="ni" data-m="playbooks"><div class="nd" style="background:var(--green)"></div>PLAYBOOKS</div>
+  <div class="ni" data-m="timemachine"><div class="nd" style="background:var(--dim)"></div>TIME MACHINE</div>
 </div>
+
+<!-- CENTER -->
+<div class="center" id="center">
+
+<!-- OVERVIEW -->
+<div class="mod active" id="m-overview">
+  <div class="mission"><div class="mission-t">MISSION BRIEFING</div><div class="mission-b" id="briefing">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">TOP PRIORITIES</div><div class="pnl-b" id="priorities">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">AGENT STATUS</div><div style="padding:8px 12px"><div class="g6" id="agent-grid">Loading...</div></div></div>
+  <div class="g2">
+    <div class="pnl"><div class="pnl-h">WHAT CHANGED</div><div class="pnl-b" id="changes">Loading...</div></div>
+    <div class="pnl"><div class="pnl-h">AGENT COMMUNICATIONS</div><div class="pnl-b" id="comms" style="max-height:140px;overflow-y:auto"></div></div>
+  </div>
+  <div class="pnl"><div class="pnl-h">SYSTEM HEALTH</div><div style="padding:8px 12px"><div class="g4" id="health-grid">Loading...</div></div></div>
+  <div class="pnl"><div class="pnl-h">SESSION RECAP</div><div class="pnl-b" id="recap">Loading...</div></div>
+</div>
+
+<!-- JARVIS -->
+<div class="mod" id="m-jarvis">
+  <div class="mod-t">JARVIS COMMAND INTERFACE</div>
+  <div class="pnl" style="flex:1;display:flex;flex-direction:column">
+    <div class="pnl-h">SYSTEM DIALOGUE</div>
+    <div class="j-log" id="jlog"><div class="j-msg"><span class="j-r">JARVIS:</span> Shell active. Type a command or use quick buttons. Data refreshes every 30s.</div></div>
+    <div class="j-qb"><button onclick="jcmd('status')">STATUS</button><button onclick="jcmd('risks')">RISKS</button><button onclick="jcmd('runners')">RUNNERS</button><button onclick="jcmd('recommend')">RECOMMEND</button><button onclick="jcmd('health')">HEALTH</button><button onclick="jcmd('recap')">RECAP</button></div>
+    <div class="j-in"><input id="jin" placeholder="Enter command..." onkeydown="if(event.key==='Enter')jcmd(this.value)"><button onclick="jcmd(document.getElementById('jin').value)">SEND</button></div>
+  </div>
+</div>
+
+<!-- SENTINEL -->
+<div class="mod" id="m-sentinel">
+  <div class="mod-t">SENTINEL — SYSTEM MONITOR</div>
+  <div class="pnl"><div class="pnl-h">SERVICE HEALTH</div><div class="pnl-b" id="snt-svcs">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">DIAGNOSTICS</div><div class="pnl-b" id="snt-diag">Loading...</div></div>
+</div>
+
+<!-- INTELLIGENCE -->
+<div class="mod" id="m-intelligence">
+  <div class="mod-t">INTELLIGENCE — SIGNAL PIPELINE</div>
+  <div class="g2">
+    <div class="pnl"><div class="pnl-h">PIPELINE STATS</div><div class="pnl-b" id="intel-pipe">Loading...</div></div>
+    <div class="pnl"><div class="pnl-h">PRIMARY SIGNAL</div><div class="pnl-b" id="intel-sig">Loading...</div></div>
+  </div>
+</div>
+
+<!-- EXECUTION -->
+<div class="mod" id="m-execution">
+  <div class="mod-t">EXECUTION — TRADE ENGINE</div>
+  <div class="pnl"><div class="pnl-h">SUMMARY</div><div class="pnl-b" id="exec-sum">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">TOP RUNNERS</div><div id="exec-run">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">TOP LOSERS</div><div id="exec-lose">Loading...</div></div>
+</div>
+
+<!-- PORTFOLIO -->
+<div class="mod" id="m-portfolio">
+  <div class="mod-t">PORTFOLIO — EXPOSURE ANALYSIS</div>
+  <div class="pnl"><div class="pnl-h">EXPOSURE</div><div class="pnl-b" id="port-exp">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">TICKER CONCENTRATION</div><div class="pnl-b" id="port-tickers">Loading...</div></div>
+</div>
+
+<!-- OUTCOMES -->
+<div class="mod" id="m-outcomes">
+  <div class="mod-t">OUTCOMES — PERFORMANCE ENGINE</div>
+  <div style="padding:0 12px"><div class="g4" id="out-metrics">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">CLOSED TRADES TODAY</div><div id="out-table">Loading...</div></div>
+</div>
+
+<!-- ALERTS -->
+<div class="mod" id="m-alerts">
+  <div class="mod-t">ALERT CONSOLE</div>
+  <div style="display:flex;gap:4px;margin-bottom:6px">
+    <button class="s-btn" onclick="filterAlerts('all')">ALL</button>
+    <button class="s-btn" onclick="filterAlerts('crit')">CRITICAL</button>
+    <button class="s-btn" onclick="filterAlerts('warn')">WARNING</button>
+    <button class="s-btn" onclick="filterAlerts('info')">INFO</button>
+  </div>
+  <div class="pnl"><div class="pnl-b" id="alert-list">Loading...</div></div>
+</div>
+
+<!-- DECISIONS -->
+<div class="mod" id="m-decisions">
+  <div class="mod-t">DECISION TRACE</div>
+  <div class="pnl"><div class="pnl-h">PRIMARY SIGNAL</div><div class="pnl-b" id="dec-sig">Loading...</div></div>
+  <div class="pnl"><div class="pnl-h">RECENT DECISIONS</div><div id="dec-log">Loading...</div></div>
+</div>
+
+<!-- SECURITY -->
+<div class="mod" id="m-security">
+  <div class="mod-t">SECURITY — ACCESS CONTROL</div>
+  <div class="pnl"><div class="pnl-h">JWT SESSION</div><div class="pnl-b" id="sec-jwt"></div></div>
+  <div class="pnl"><div class="pnl-h">AUTH LAYERS</div><div class="pnl-b" id="sec-layers"></div></div>
+</div>
+
+<!-- PLAYBOOKS -->
+<div class="mod" id="m-playbooks">
+  <div class="mod-t">PLAYBOOKS — STRATEGY CONTROL</div>
+  <div class="g24" id="pb-grid"></div>
+</div>
+
+<!-- TIME MACHINE -->
+<div class="mod" id="m-timemachine">
+  <div class="mod-t">TIME MACHINE</div>
+  <div class="tm-center"><div class="tm-frame"><div class="tm-sym">&#x29D6;</div><div class="tm-title">TIME MACHINE</div><div style="font-size:9px;color:var(--cyan);letter-spacing:0.15em;padding:2px 8px;border:1px solid var(--cyand)">PHASE 2</div></div><div class="tm-ph">Replay any trading session. Scrub through signal history, position lifecycle, and outcome data.</div><div style="font-size:9px;color:var(--dim);margin-top:4px">COMING IN PHASE 2</div></div>
+</div>
+
+</div><!-- /center -->
+
+<!-- RIGHT PANEL -->
+<div class="rpanel">
+  <div class="rps"><div class="rps-t">JARVIS SUMMARY</div><div id="rp-summary">Loading...</div></div>
+  <div class="rps"><div class="rps-t">ACTIVE ALERTS</div><div id="rp-alerts">Loading...</div></div>
+  <div class="rps"><div class="rps-t">RECOMMENDATIONS</div><div id="rp-recs">Loading...</div></div>
+  <div class="rps"><div class="rps-t">SHELL INTERFACE</div><div class="rps-log" id="rp-log"></div><input class="rps-cmd" id="rp-cmd" placeholder="Ask JARVIS..." onkeydown="if(event.key==='Enter'){jcmd(this.value);this.value=''}"><div style="font-size:8px;color:var(--dim);margin-top:4px;letter-spacing:0.1em">SYSTEM-GENERATED RESPONSES</div></div>
+</div>
+</div><!-- /app -->
 
 <script>
-const RM=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-const TK=['TSLA','AMD','META','NVDA','SPY','QQQ','AAPL','MSFT','AMZN','GOOG','NFLX','SHOP','COIN','PLTR','DKNG','ABNB'];
-const SIGS=[
-  {ticker:'TSLA',dir:'SHORT',grade:'A+',setup:'hunt_mode',status:'QUALIFIED',c:'q'},
-  {ticker:'AMD',dir:'LONG',grade:'A+',setup:'hunt_mode',status:'TP1_HIT',c:'gn'},
-  {ticker:'SPY',dir:'SHORT',grade:'A',setup:'trend_cont',status:'MONITORING',c:'m'},
-  {ticker:'META',dir:'LONG',grade:'A',setup:'trend_cont',status:'QUALIFIED',c:'q'},
-  {ticker:'NVDA',dir:'SHORT',grade:'A+',setup:'hunt_mode',status:'BE_STOP',c:'gn'},
-  {ticker:'QQQ',dir:'SHORT',grade:'A',setup:'trend_cont',status:'STOP_LOSS',c:'rd'},
-  {ticker:'PLTR',dir:'LONG',grade:'A+',setup:'hunt_mode',status:'TP1_HIT',c:'gn'},
-  {ticker:'GS',dir:'SHORT',grade:'A',setup:'hunt_mode',status:'MONITORING',c:'m'},
-];
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let D={stats:null,positions:[],pipeline:null,signal:null,closed:[],account:null,agent:null,services:null,systemStats:null};
+let prevD=null;
+const sessionStart=new Date();
+const modes=['OBSERVER','ASSISTED','AUTO'];
+let modeIdx=parseInt(localStorage.getItem('nexusMode')||'0');
+document.getElementById('mode-btn').textContent=modes[modeIdx];
+let alertFilter='all';
 
-function uStat(id,v){const e=document.getElementById(id);if(!e)return;const o=e.textContent;e.textContent=v;
-  if(o!==v&&o!=='--'){e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),400);}}
+// ═══════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════
+document.querySelectorAll('.ni').forEach(n=>{
+  n.addEventListener('click',()=>{
+    document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+    n.classList.add('active');
+    document.querySelectorAll('.mod').forEach(m=>m.classList.remove('active'));
+    const el=document.getElementById('m-'+n.dataset.m);
+    if(el)el.classList.add('active');
+  });
+});
 
-// ══════════════════════════════════════
-// SONAR — memory-safe, runs forever
-// ══════════════════════════════════════
-const sonarEl=document.getElementById('sonar');
-const ctx=sonarEl?sonarEl.getContext('2d'):null;
-let sw=0;
-const dots=[];  // hard cap: 30
-const DIRS_LABEL=['N','E','S','W'];
-let cx=0,cy=0,radius=0;
-const trackLabel=document.getElementById('tracking-label');
+function cycleMode(){modeIdx=(modeIdx+1)%3;localStorage.setItem('nexusMode',modeIdx);document.getElementById('mode-btn').textContent=modes[modeIdx]}
 
-function initSonar(){
-  if(!sonarEl)return;
-  const w=sonarEl.parentElement.offsetWidth;
-  const h=Math.min(w,420);
-  sonarEl.width=w;sonarEl.height=h;
-  cx=w/2;cy=h/2;radius=(Math.min(w,h)/2)-20;
+// ═══════════════════════════════════════
+// DATA FETCH (all through /api/nexus/*)
+// ═══════════════════════════════════════
+async function fetchAll(){
+  prevD=JSON.parse(JSON.stringify(D));
+  const f=async(u)=>{try{const r=await fetch(u);return await r.json()}catch{return null}};
+  const[stats,positions,pipeline,signal,closed,account,agent,services,systemStats]=await Promise.all([
+    f('/api/nexus/stats'),f('/api/nexus/positions'),f('/api/nexus/pipeline'),
+    f('/api/nexus/signal'),f('/api/nexus/closed'),f('/api/nexus/account'),
+    f('/api/nexus/agent'),f('/api/service-status'),f('/api/nexus/system-stats'),
+  ]);
+  D={stats:stats||D.stats,positions:Array.isArray(positions)?positions:(D.positions||[]),
+    pipeline:pipeline||D.pipeline,signal:signal||D.signal,
+    closed:Array.isArray(closed)?closed:(D.closed||[]),
+    account:account||D.account,agent:agent||D.agent,
+    services:services||D.services,systemStats:systemStats||D.systemStats};
+  render();
 }
 
-// Dot spawning on SEPARATE timer — never inside draw loop
-function spawnDot(){
-  if(dots.length>=30) dots.shift(); // hard cap, remove oldest
-  const a=sw+Math.random()*0.3-0.15;
-  const d=Math.random()*radius*0.85+radius*0.1;
-  const tk=TK[Math.floor(Math.random()*TK.length)];
-  dots.push({x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d,t:Date.now(),tk:Math.random()>0.5?tk:null});
+// ═══════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════
+function render(){
+  renderStatusBar();renderOverview();renderRightPanel();
+  renderSentinel();renderIntelligence();renderExecution();
+  renderPortfolio();renderOutcomes();renderAlerts();
+  renderDecisions();renderSecurity();renderPlaybooks();
 }
 
-function drawSonar(){
-  if(!ctx)return;
-  const w=sonarEl.width,h=sonarEl.height;
-  ctx.clearRect(0,0,w,h);
+function $(id){return document.getElementById(id)}
+function pnl(v){const n=parseFloat(v||0);return(n>=0?'+$':'-$')+Math.abs(n).toFixed(0)}
+function pc(v){return v>=0?'g':'r'}
 
-  // Background
-  ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);
+// ═══════════════════════════════════════
+// STATUS BAR
+// ═══════════════════════════════════════
+function renderStatusBar(){
+  if(!D.services)return;
+  const m={core:'d-core',execution:'d-exec',trading:'d-trade'};
+  for(const[n,s]of Object.entries(D.services)){
+    const el=$(m[n]);if(el)el.className='s-dot '+(s==='ok'?'ok':'err');
+  }
+  $('d-gw').className='s-dot ok';
+}
 
-  // Rings
-  ctx.lineWidth=1;
-  for(let i=1;i<=4;i++){
-    ctx.beginPath();ctx.arc(cx,cy,radius*i/4,0,Math.PI*2);
-    ctx.strokeStyle='rgba(0,184,204,0.12)';ctx.stroke();
-    ctx.font='9px "Share Tech Mono"';ctx.fillStyle='rgba(100,100,100,0.6)';ctx.textAlign='left';ctx.textBaseline='middle';
-    ctx.fillText((i*25)+'km',cx+radius*i/4+4,cy+3);
+// ═══════════════════════════════════════
+// OVERVIEW
+// ═══════════════════════════════════════
+function renderOverview(){
+  const a=D.account||{};const s=D.stats||{};const ag=D.agent||{};const pos=D.positions;
+  const ss=D.systemStats||{};
+
+  // Briefing
+  const status=ag.status||'UNKNOWN';const openC=pos.length;
+  const todayPnl=parseFloat(a.today_pnl||0);const wr=parseFloat(a.win_rate||0);
+  $('briefing').innerHTML=`NEXUS autonomous trading system is <b class="${status==='RUNNING'?'g':'r'}">${status}</b>. `
+    +`<b>${openC}</b> positions open. Today P&L: <b class="${pc(todayPnl)}">${pnl(todayPnl)}</b>. `
+    +`Win rate: <b>${wr.toFixed(0)}%</b>. Heartbeat: <b class="${(ss.heartbeat_age_seconds||99)<30?'g':'a'}">${ss.heartbeat_age_seconds||'--'}s</b>.`;
+
+  // Priorities
+  const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0));
+  const best=sorted[0];const worst=sorted[sorted.length-1];
+  const nearStop=ss.near_stop_count||0;
+  $('priorities').innerHTML=`<div>1. ${nearStop>0?`<span class="a">${nearStop} positions near stop loss</span>`:'No positions near stop'}</div>`
+    +`<div>2. ${best?`Top runner: <b class="g">${best.ticker} ${pnl(best.current_pnl)}</b>`:'No open positions'}</div>`
+    +`<div>3. Quote failures: <b class="${(ss.quote_fail_count||0)>10?'a':'g'}">${ss.quote_fail_count||0}</b> in last 15min</div>`
+    +`<div>4. Win rate: <b class="${wr<30?'r':wr<50?'a':'g'}">${wr.toFixed(0)}%</b></div>`
+    +`<div>5. ${worst?`Worst position: <b class="r">${worst.ticker} ${pnl(worst.current_pnl)}</b>`:'--'}</div>`;
+
+  // Agent grid
+  const svcs=D.services||{};
+  $('agent-grid').innerHTML=[
+    {n:'GATEWAY',s:'ok',i:'Auth + routing layer',i2:'JWT cookie active'},
+    {n:'CORE',s:svcs.core||'down',i:`Pipeline: ${(D.pipeline||{}).cycles||'--'} cycles`,i2:`Signals: ${(D.pipeline||{}).signals_evaluated||'--'} evaluated`},
+    {n:'EXECUTION',s:svcs.execution||'down',i:`${pos.length} open positions`,i2:`Agent: ${ag.status||'--'}`},
+    {n:'TRADING',s:svcs.trading||'down',i:`Dashboard serving data`,i2:`P&L: ${pnl(todayPnl)}`},
+    {n:'SENTINEL',s:'off',i:'Phase 2',i2:'System monitoring'},
+    {n:'JARVIS',s:'off',i:'Phase 2',i2:'Adaptive intelligence'},
+  ].map(a=>`<div class="ac"><div class="ac-n"><div class="s-dot ${a.s==='ok'?'ok':a.s==='off'?'off':'err'}"></div>${a.n}</div><div class="ac-i">${a.i}</div><div class="ac-i">${a.i2}</div></div>`).join('');
+
+  // What changed
+  if(prevD&&prevD.positions){
+    const pO=prevD.positions.length;const nO=pos.length;const delta=nO-pO;
+    const pPnl=parseFloat((prevD.account||{}).today_pnl||0);const nPnl=todayPnl;
+    const pnlD=nPnl-pPnl;
+    const items=[];
+    if(delta>0)items.push(`<div class="g">+ ${delta} new positions opened</div>`);
+    if(delta<0)items.push(`<div class="r">- ${Math.abs(delta)} positions closed</div>`);
+    if(Math.abs(pnlD)>1)items.push(`<div class="${pc(pnlD)}">P&L change: ${pnl(pnlD)}</div>`);
+    $('changes').innerHTML=items.length?items.join(''):'<div style="color:var(--muted)">No changes detected</div>';
   }
 
-  // Crosshairs
-  ctx.strokeStyle='rgba(0,229,255,0.06)';ctx.beginPath();
-  ctx.moveTo(cx-radius,cy);ctx.lineTo(cx+radius,cy);
-  ctx.moveTo(cx,cy-radius);ctx.lineTo(cx,cy+radius);ctx.stroke();
+  // Health grid
+  $('health-grid').innerHTML=[
+    {l:'HEARTBEAT',v:(ss.heartbeat_age_seconds||'--')+'s',c:((ss.heartbeat_age_seconds||99)<30?'var(--green)':'var(--amber)')},
+    {l:'QUOTE FAILS',v:ss.quote_fail_count||0,c:((ss.quote_fail_count||0)<10?'var(--green)':'var(--amber)')},
+    {l:'OPEN POS',v:pos.length,c:'var(--white)'},
+    {l:'WIN RATE',v:wr.toFixed(0)+'%',c:(wr>=50?'var(--green)':wr>=30?'var(--amber)':'var(--red)')},
+    {l:'TODAY P&L',v:pnl(todayPnl),c:(todayPnl>=0?'var(--green)':'var(--red)')},
+    {l:'SIGNALS',v:(D.pipeline||{}).signals_evaluated||'--',c:'var(--cyan)'},
+    {l:'AGENT',v:ag.status||'--',c:(ag.status==='RUNNING'?'var(--green)':'var(--red)')},
+    {l:'CYCLES',v:(D.pipeline||{}).cycles||'--',c:'var(--white)'},
+  ].map(h=>`<div class="hm"><div class="hl">${h.l}</div><div class="hv" style="color:${h.c}">${h.v}</div></div>`).join('');
 
-  // Ticks + NESW
-  for(let deg=0;deg<360;deg+=30){
-    const rad=deg*Math.PI/180;const major=deg%90===0;
-    const len=major?10:5;const op=major?0.35:0.15;
-    ctx.beginPath();
-    ctx.moveTo(cx+Math.cos(rad)*(radius-len),cy+Math.sin(rad)*(radius-len));
-    ctx.lineTo(cx+Math.cos(rad)*radius,cy+Math.sin(rad)*radius);
-    ctx.strokeStyle='rgba(0,229,255,'+op+')';ctx.lineWidth=1;ctx.stroke();
-    if(major){
-      const li=[90,180,270,0].indexOf(deg);
-      if(li>=0){
-        ctx.font='9px Orbitron';ctx.fillStyle='rgba(0,229,255,0.4)';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(DIRS_LABEL[li],cx+Math.cos(rad)*(radius+12),cy+Math.sin(rad)*(radius+12));
-      }
-    }
-  }
-
-  // Sweep trail
-  const ts=sw-Math.PI/2;
-  for(let i=0;i<30;i++){
-    const a=ts+i*(Math.PI/2)/30;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,radius,a,a+0.06);ctx.closePath();
-    ctx.fillStyle='rgba(0,229,255,'+(i/30*0.25)+')';ctx.fill();
-  }
-
-  // Sweep line
-  ctx.beginPath();ctx.moveTo(cx,cy);
-  ctx.lineTo(cx+Math.cos(sw)*radius,cy+Math.sin(sw)*radius);
-  ctx.strokeStyle='rgba(0,229,255,0.8)';ctx.lineWidth=2;
-  ctx.shadowColor='rgba(0,229,255,0.6)';ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
-
-  // Draw dots (READ only — no splice/push here)
-  const now=Date.now();
-  let visible=0;
-  for(let i=0;i<dots.length;i++){
-    const dot=dots[i];const age=(now-dot.t)/1000;
-    if(age>8)continue; // expired, will be cleaned by spawner
-    visible++;
-    // Ping ripple
-    if(age<1.5){
-      for(let r=1;r<=3;r++){
-        const rAge=age-r*0.2;
-        if(rAge>0&&rAge<1){
-          ctx.beginPath();ctx.arc(dot.x,dot.y,rAge*20,0,Math.PI*2);
-          ctx.strokeStyle='rgba(0,255,136,'+(0.3*(1-rAge))+')';ctx.lineWidth=1;ctx.stroke();
-        }
-      }
-    }
-    const op=Math.max(0,1-age/8);
-    ctx.beginPath();ctx.arc(dot.x,dot.y,3,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,255,136,'+(op*0.9)+')';ctx.fill();
-    if(dot.tk){
-      ctx.font='8px "Share Tech Mono"';ctx.fillStyle='rgba(0,229,255,'+(op*0.5)+')';
-      ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(dot.tk,dot.x+6,dot.y);
-    }
-  }
-
-  // Center
-  const cp=0.5+0.5*Math.sin(now/400);
-  ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);
-  ctx.fillStyle='rgba(0,229,255,'+(0.5+cp*0.5)+')';ctx.fill();
-  ctx.font='8px Orbitron';ctx.fillStyle='rgba(0,229,255,0.3)';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText('NEXUS',cx,cy+16);
-
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,radius,0,Math.PI*2);
-  ctx.strokeStyle='rgba(0,229,255,0.5)';ctx.lineWidth=2;
-  ctx.shadowColor='rgba(0,229,255,0.3)';ctx.shadowBlur=12;ctx.stroke();ctx.shadowBlur=0;
-
-  trackLabel.textContent='\u25CF TRACKING '+visible+' SIGNALS';
-
-  // Sweep angle — wraps with modulo
-  sw=(sw+Math.PI*2/600)%(Math.PI*2);
-
-  requestAnimationFrame(drawSonar);
+  // Recap
+  const el=Math.floor((Date.now()-sessionStart)/60000);
+  $('recap').innerHTML=`<div class="row"><span>Session Duration</span><span class="v">${el}m</span></div>`
+    +`<div class="row"><span>Open Positions</span><span class="v">${pos.length}</span></div>`
+    +`<div class="row"><span>Closed Today</span><span class="v">${D.closed.length}</span></div>`
+    +`<div class="row"><span>Net P&L</span><span class="v ${pc(todayPnl)}">${pnl(todayPnl)}</span></div>`
+    +`<div class="row"><span>Win Rate</span><span class="v">${wr.toFixed(0)}%</span></div>`;
 }
 
-// Clean expired dots periodically (outside draw loop)
-function cleanDots(){
-  const now=Date.now();
-  for(let i=dots.length-1;i>=0;i--){
-    if((now-dots[i].t)/1000>8) dots.splice(i,1);
+// ═══════════════════════════════════════
+// RIGHT PANEL
+// ═══════════════════════════════════════
+function renderRightPanel(){
+  const a=D.account||{};const ag=D.agent||{};const ss=D.systemStats||{};
+  const status=ag.status||'UNKNOWN';const pos=D.positions;
+  $('rp-summary').innerHTML=[
+    `<div class="rps-i">Status: <b style="color:${status==='RUNNING'?'var(--green)':'var(--red)'}">${status}</b></div>`,
+    `<div class="rps-i">Positions: <b>${pos.length}</b></div>`,
+    `<div class="rps-i">Today P&L: <b style="color:${parseFloat(a.today_pnl||0)>=0?'var(--green)':'var(--red)'}">${pnl(a.today_pnl)}</b></div>`,
+    `<div class="rps-i">Win Rate: <b>${parseFloat(a.win_rate||0).toFixed(0)}%</b></div>`,
+  ].join('');
+
+  // Alerts
+  const alerts=generateAlerts();
+  $('rp-alerts').innerHTML=alerts.slice(0,5).map(a=>`<div class="rps-alert ${a.sev}">${a.msg}</div>`).join('')||'<div class="rps-i" style="color:var(--green)">No alerts</div>';
+
+  // Recommendations
+  const recs=[];
+  if(pos.length>50)recs.push('Monitor position concentration — '+pos.length+' open');
+  if(parseFloat(a.win_rate||0)<30)recs.push('Review disqualifier thresholds — win rate low');
+  if((ss.heartbeat_age_seconds||0)>60)recs.push('Check execution service — heartbeat stale');
+  if((ss.quote_fail_count||0)>10)recs.push('Monitor Tradier connection — quote failures elevated');
+  if(!recs.length)recs.push('All systems nominal — no action required');
+  $('rp-recs').innerHTML=recs.map(r=>`<div class="rps-rec">${r}</div>`).join('');
+}
+
+function generateAlerts(){
+  const alerts=[];const ss=D.systemStats||{};const ag=D.agent||{};const a=D.account||{};
+  const hb=ss.heartbeat_age_seconds;
+  if(hb>60)alerts.push({sev:'crit',msg:'Agent heartbeat stale ('+hb+'s)'});
+  else if(hb>30)alerts.push({sev:'',msg:'Agent heartbeat delayed ('+hb+'s)'});
+  if((ss.quote_fail_count||0)>10)alerts.push({sev:'',msg:'Quote failure spike ('+ss.quote_fail_count+')'});
+  if((ss.near_stop_count||0)>5)alerts.push({sev:'',msg:ss.near_stop_count+' positions near stop'});
+  if(parseFloat(a.win_rate||100)<20)alerts.push({sev:'crit',msg:'Win rate below threshold ('+parseFloat(a.win_rate||0).toFixed(0)+'%)'});
+  if(ag.status==='PAUSED')alerts.push({sev:'crit',msg:'Agent is PAUSED — no new entries'});
+  if(!alerts.length)alerts.push({sev:'info',msg:'All systems operational'});
+  return alerts;
+}
+
+// ═══════════════════════════════════════
+// SENTINEL
+// ═══════════════════════════════════════
+function renderSentinel(){
+  const sv=D.services||{};const ss=D.systemStats||{};const ag=D.agent||{};
+  $('snt-svcs').innerHTML=[
+    {n:'Gateway',s:'ok'},{n:'Core Intelligence',s:sv.core||'down'},
+    {n:'Execution',s:sv.execution||'down'},{n:'Trading Dashboard',s:sv.trading||'down'},
+    {n:'Supabase',s:'ok'},{n:'Tradier API',s:'ok'},
+  ].map(s=>`<div class="row"><span>${s.n}</span><span class="${s.s==='ok'?'g':'r'}">${s.s==='ok'?'ONLINE':'OFFLINE'}</span></div>`).join('');
+  $('snt-diag').innerHTML=`<div class="row"><span>Heartbeat</span><span class="${(ss.heartbeat_age_seconds||99)<30?'g':'a'}">${ss.heartbeat_age_seconds||'--'}s</span></div>`
+    +`<div class="row"><span>Quote Failures (15m)</span><span class="v">${ss.quote_fail_count||0}</span></div>`
+    +`<div class="row"><span>Near Stop Positions</span><span class="v">${ss.near_stop_count||0}</span></div>`
+    +`<div class="row"><span>Agent Status</span><span class="${ag.status==='RUNNING'?'g':'r'}">${ag.status||'--'}</span></div>`;
+}
+
+// ═══════════════════════════════════════
+// INTELLIGENCE
+// ═══════════════════════════════════════
+function renderIntelligence(){
+  const p=D.pipeline||{};const s=D.signal||{};
+  $('intel-pipe').innerHTML=`<div class="row"><span>Signals Evaluated</span><span class="v">${p.signals_evaluated||'--'}</span></div>`
+    +`<div class="row"><span>Qualified</span><span class="g">${p.signals_qualified||'--'}</span></div>`
+    +`<div class="row"><span>Disqualified</span><span class="r">${p.signals_disqualified||'--'}</span></div>`
+    +`<div class="row"><span>Cycle Duration</span><span class="v">${p.last_duration_ms||'--'}ms</span></div>`
+    +`<div class="row"><span>Total Cycles</span><span class="v">${p.cycles||'--'}</span></div>`;
+  if(s.ticker&&s.status!=='no_signal'){
+    $('intel-sig').innerHTML=`<div class="row"><span>Ticker</span><span class="v" style="font-size:16px">${s.ticker}</span></div>`
+      +`<div class="row"><span>Direction</span><span class="v">${(s.direction||'').toUpperCase()}</span></div>`
+      +`<div class="row"><span>Grade</span><span class="c">${s.grade||'--'}</span></div>`
+      +`<div class="row"><span>Score</span><span class="v">${s.score||'--'}</span></div>`
+      +`<div class="row"><span>Confidence</span><span class="v">${s.confidence||'--'}%</span></div>`
+      +`<div class="row"><span>Setup</span><span class="v">${s.setup_family||'--'}</span></div>`;
+  }else{
+    $('intel-sig').innerHTML='<div style="color:var(--muted);padding:10px;text-align:center">NO SIGNAL — PENDING QUALIFICATION</div>';
   }
 }
 
-// ══════════════════════════════════════
-// INTEL FEED — JS typewriter, no CSS animation
-// ══════════════════════════════════════
-const INTEL_LINES=[
-  "NEXUS LABS // AUTONOMOUS TRADING SYSTEM v2.0",
-  "LAB MODE ACTIVE // SIGNAL PIPELINE RUNNING",
-  "PAPER EXECUTION ENGINE LIVE // AGENT LOOP ACTIVE",
-  "ALL SYSTEMS OPERATIONAL // 3/3 SERVICES ONLINE",
-  "PRAXIUM HOLDINGS // PROPRIETARY SYSTEM",
-  "SIGNAL ACQUISITION ACTIVE // TRACKING LIVE",
-  "AUTONOMOUS AGENT LOOP RUNNING // 15s CYCLE",
-  "JWT AUTHENTICATION LAYER ACTIVE // SECURE",
-  "SUPABASE CONNECTED // DATA PIPELINE HEALTHY",
-  "TRADIER QUOTE SERVICE // LIVE OPTION PRICES",
-];
-const intelBody=document.getElementById('intel-body');
-let intelLineIdx=0;
-const intelDisplayed=[];  // {el, text}
+// ═══════════════════════════════════════
+// EXECUTION
+// ═══════════════════════════════════════
+function renderExecution(){
+  const pos=D.positions;const a=D.account||{};const s=D.stats||{};
+  $('exec-sum').innerHTML=`<div class="row"><span>Open Positions</span><span class="v">${pos.length}</span></div>`
+    +`<div class="row"><span>Allocated</span><span class="v">$${parseFloat(a.allocated||0).toFixed(0)}</span></div>`
+    +`<div class="row"><span>Today P&L</span><span class="${pc(a.today_pnl)}">${pnl(a.today_pnl)}</span></div>`
+    +`<div class="row"><span>Win Rate</span><span class="v">${parseFloat(a.win_rate||0).toFixed(0)}%</span></div>`
+    +`<div class="row"><span>Trades Today</span><span class="v">${s.total_today||0}</span></div>`;
+  const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0));
+  const runners=sorted.slice(0,5);const losers=sorted.slice(-5).reverse();
+  function tbl(items,id){
+    $(id).innerHTML=`<table class="tbl"><thead><tr><th>TICKER</th><th>DIR</th><th>GRADE</th><th>ENTRY</th><th>NOW</th><th>P&L</th></tr></thead><tbody>`
+      +items.map(p=>`<tr><td class="tk">${p.ticker}</td><td>${(p.direction||'').slice(0,3)}</td><td>${p.grade||'-'}</td><td>$${parseFloat(p.entry_premium||0).toFixed(2)}</td><td>$${parseFloat(p.current_premium||0).toFixed(2)}</td><td class="${pc(p.current_pnl)}">${pnl(p.current_pnl)}</td></tr>`).join('')
+      +'</tbody></table>';
+  }
+  tbl(runners,'exec-run');tbl(losers,'exec-lose');
+}
 
-function typeIntelLine(){
-  const text=INTEL_LINES[intelLineIdx%INTEL_LINES.length];
-  intelLineIdx++;
-  const div=document.createElement('div');
-  div.className='intel-line newest';
-  intelBody.appendChild(div);
-  const cursor=document.createElement('span');
-  cursor.className='intel-cursor';
-  div.appendChild(cursor);
+// ═══════════════════════════════════════
+// PORTFOLIO
+// ═══════════════════════════════════════
+function renderPortfolio(){
+  const pos=D.positions;const a=D.account||{};
+  const bal=parseFloat(a.balance||0);const alloc=parseFloat(a.allocated||0);const free=parseFloat(a.free||0);
+  const pctDep=bal>0?((alloc/bal)*100).toFixed(1):0;
+  const longC=pos.filter(p=>(p.direction||'').toLowerCase()==='long').length;
+  const shortC=pos.filter(p=>(p.direction||'').toLowerCase()!=='long').length;
+  $('port-exp').innerHTML=`<div class="row"><span>Balance</span><span class="v">$${bal.toFixed(0)}</span></div>`
+    +`<div class="row"><span>Allocated</span><span class="v">$${alloc.toFixed(0)}</span></div>`
+    +`<div class="row"><span>Free</span><span class="v">$${free.toFixed(0)}</span></div>`
+    +`<div class="row"><span>Deployed</span><span class="c">${pctDep}%</span></div>`
+    +`<div class="bar"><div class="bar-fill" style="width:${pctDep}%;background:var(--cyan)"></div></div>`
+    +`<div class="row" style="margin-top:8px"><span>Long / Short</span><span class="v">${longC} / ${shortC}</span></div>`;
+  const tickers={};pos.forEach(p=>{tickers[p.ticker]=(tickers[p.ticker]||0)+1});
+  const sorted=Object.entries(tickers).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const max=sorted.length?sorted[0][1]:1;
+  $('port-tickers').innerHTML=sorted.map(([t,c])=>`<div class="row"><span>${t}</span><span class="v">${c}</span></div><div class="bar"><div class="bar-fill" style="width:${(c/max*100)}%;background:var(--cyan)"></div></div>`).join('');
+}
 
-  // Dim previous lines
-  intelDisplayed.forEach(d=>{d.el.classList.remove('newest');d.el.classList.add('active');});
-  intelDisplayed.push({el:div,text:text});
-  // Remove old lines beyond 4
-  while(intelDisplayed.length>4){
-    const old=intelDisplayed.shift();
-    old.el.classList.remove('active');
-    old.el.style.color='#333';
-    setTimeout(()=>old.el.remove(),500);
+// ═══════════════════════════════════════
+// OUTCOMES
+// ═══════════════════════════════════════
+function renderOutcomes(){
+  const s=D.stats||{};const cl=D.closed;
+  $('out-metrics').innerHTML=[
+    {l:'WIN RATE',v:(s.win_rate||0)+'%',c:parseFloat(s.win_rate||0)>=50?'var(--green)':'var(--amber)'},
+    {l:'AVG P&L',v:'$'+(s.avg_pnl||0),c:parseFloat(s.avg_pnl||0)>=0?'var(--green)':'var(--red)'},
+    {l:'BEST',v:'$'+(s.best_trade||0),c:'var(--green)'},
+    {l:'WORST',v:'$'+(s.worst_trade||0),c:'var(--red)'},
+    {l:'TODAY',v:s.total_today||0,c:'var(--white)'},
+    {l:'WINNERS',v:s.winners_today||0,c:'var(--green)'},
+    {l:'LOSERS',v:s.losers_today||0,c:'var(--red)'},
+    {l:'TODAY P&L',v:pnl(s.today_pnl),c:parseFloat(s.today_pnl||0)>=0?'var(--green)':'var(--red)'},
+  ].map(h=>`<div class="hm"><div class="hl">${h.l}</div><div class="hv" style="color:${h.c}">${h.v}</div></div>`).join('');
+  if(cl.length){
+    $('out-table').innerHTML=`<table class="tbl"><thead><tr><th>TICKER</th><th>DIR</th><th>P&L</th><th>EXIT</th><th>DUR</th></tr></thead><tbody>`
+      +cl.slice(0,10).map(t=>`<tr><td class="tk">${t.ticker}</td><td>${(t.direction||'').slice(0,3)}</td><td class="${pc(t.pnl_dollars)}">${pnl(t.pnl_dollars)}</td><td>${t.exit_reason||'-'}</td><td>${t.time_in_trade_minutes||'-'}m</td></tr>`).join('')
+      +'</tbody></table>';
+  }else{$('out-table').innerHTML='<div class="pnl-b" style="color:var(--muted)">No closed trades today</div>'}
+}
+
+// ═══════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════
+function renderAlerts(){
+  const alerts=generateAlerts();
+  const filtered=alertFilter==='all'?alerts:alerts.filter(a=>
+    alertFilter==='crit'?a.sev==='crit':alertFilter==='warn'?a.sev==='':alertFilter==='info'?a.sev==='info':true);
+  $('alert-list').innerHTML=filtered.map(a=>{
+    const dot=a.sev==='crit'?'var(--red)':a.sev==='info'?'var(--cyan)':'var(--amber)';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border2)"><div style="width:6px;height:6px;border-radius:50%;background:${dot};flex-shrink:0"></div><span>${a.msg}</span></div>`;
+  }).join('')||'<div style="color:var(--muted)">No alerts matching filter</div>';
+}
+function filterAlerts(f){alertFilter=f;renderAlerts()}
+
+// ═══════════════════════════════════════
+// DECISIONS
+// ═══════════════════════════════════════
+function renderDecisions(){
+  const s=D.signal||{};const p=D.pipeline||{};
+  if(s.ticker&&s.status!=='no_signal'){
+    $('dec-sig').innerHTML=`<div style="color:var(--green);margin-bottom:4px">PROMOTED</div>`
+      +`<div class="row"><span>Ticker</span><span class="v">${s.ticker}</span></div>`
+      +`<div class="row"><span>Score</span><span class="v">${s.score||'--'}</span></div>`
+      +`<div class="row"><span>Grade</span><span class="c">${s.grade||'--'}</span></div>`
+      +`<div class="row"><span>Confidence</span><span class="v">${s.confidence||'--'}%</span></div>`;
+  }else{
+    $('dec-sig').innerHTML='<div style="color:var(--muted)">NO SIGNAL — pending qualification</div>';
+  }
+  const recent=(p.recent_signals||[]).slice(0,5);
+  $('dec-log').innerHTML=recent.length?`<table class="tbl"><thead><tr><th>TICKER</th><th>GRADE</th><th>SCORE</th><th>DIR</th><th>STATUS</th></tr></thead><tbody>`
+    +recent.map(r=>`<tr><td class="tk">${r.ticker||'--'}</td><td>${r.grade||'--'}</td><td>${r.score||'--'}</td><td>${(r.direction||'').toUpperCase()}</td><td class="g">PROMOTED</td></tr>`).join('')
+    +'</tbody></table>':'<div class="pnl-b" style="color:var(--muted)">No recent decisions</div>';
+}
+
+// ═══════════════════════════════════════
+// SECURITY
+// ═══════════════════════════════════════
+function renderSecurity(){
+  const el=Math.floor((Date.now()-sessionStart)/60000);
+  const rem=Math.max(0,720-el);
+  $('sec-jwt').innerHTML=`<div class="row"><span>User</span><span class="v">NexusOps</span></div>`
+    +`<div class="row"><span>Session Age</span><span class="v">${Math.floor(el/60)}h ${el%60}m</span></div>`
+    +`<div class="row"><span>Expires In</span><span class="v">${Math.floor(rem/60)}h ${rem%60}m</span></div>`
+    +`<div class="row"><span>Status</span><span class="g">ACTIVE</span></div>`;
+  $('sec-layers').innerHTML=[
+    {n:'JWT Cookie Auth',s:'ACTIVE'},{n:'API Authentication',s:'ACTIVE'},
+    {n:'CORS Policy',s:'*.praxiumholdings.com'},{n:'Security Headers',s:'HSTS + CSP'},
+  ].map(l=>`<div class="row"><span>${l.n}</span><span class="g">${l.s}</span></div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// PLAYBOOKS
+// ═══════════════════════════════════════
+function renderPlaybooks(){
+  $('pb-grid').innerHTML=[
+    {n:'TP TARGETS',v:'1.5x / 2x / 3x',d:'Take profit at +50%, +100%, +200%'},
+    {n:'STOP LOSS',v:'-50%',d:'Stop at 50% loss from entry'},
+    {n:'MAX DURATION',v:'Weekly Expiry',d:'0DTE: 240min. Weekly: 7200min safety'},
+    {n:'GRADES',v:'A+ and A',d:'Only top-grade signals execute'},
+    {n:'MARKET HOURS',v:'9:30-4:00 ET',d:'Mon-Fri regular session only'},
+    {n:'LAB MODE',v:'ALL SIGNALS',d:'Every unique qualified signal trades'},
+    {n:'EXPIRY RULE',v:'No 0DTE',d:'Nearest weekly, min 1 day to expiry'},
+    {n:'POSITION SIZE',v:'1 Contract',d:'Always 1 contract, no scaling'},
+  ].map(p=>`<div class="pb-card"><div class="pb-name">${p.n}</div><div class="pb-val">${p.v}</div><div class="pb-desc">${p.d}</div><div class="pb-badge">ACTIVE</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// JARVIS SHELL
+// ═══════════════════════════════════════
+function jcmd(cmd){
+  if(!cmd)return;
+  const input=$('jin');if(input)input.value='';
+  const log=$('jlog');const rpLog=$('rp-log');
+  const pos=D.positions;const a=D.account||{};const ss=D.systemStats||{};const ag=D.agent||{};
+  const c=cmd.toLowerCase().trim();
+
+  log.innerHTML+=`<div class="j-msg"><span class="j-u">NexusOps &gt;</span> ${cmd}</div>`;
+
+  let resp='';
+  if(c==='status'){
+    resp=`System: ${ag.status||'UNKNOWN'}. ${pos.length} positions open. P&L: ${pnl(a.today_pnl)}. Win rate: ${parseFloat(a.win_rate||0).toFixed(0)}%. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s.`;
+  }else if(c==='risks'){
+    resp=`Near stop: ${ss.near_stop_count||0}. Quote failures: ${ss.quote_fail_count||0}. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s. ${ag.status==='PAUSED'?'AGENT IS PAUSED.':'Agent running.'}`;
+  }else if(c==='runners'){
+    const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0)).slice(0,5);
+    resp=sorted.length?sorted.map(p=>`${p.ticker} ${(p.direction||'').slice(0,3)} ${pnl(p.current_pnl)}`).join(' | '):'No open positions.';
+  }else if(c==='recommend'){
+    const recs=[];
+    if(pos.length>50)recs.push('Monitor concentration');
+    if((ss.quote_fail_count||0)>10)recs.push('Check Tradier');
+    if((ss.heartbeat_age_seconds||0)>30)recs.push('Check execution');
+    resp=recs.length?recs.join('. ')+'.':`All systems nominal. Continue ${modes[modeIdx]} mode.`;
+  }else if(c==='health'){
+    const sv=D.services||{};
+    resp=Object.entries(sv).map(([n,s])=>`${n}: ${s==='ok'?'ONLINE':'OFFLINE'}`).join(' | ')||'No service data.';
+  }else if(c==='recap'){
+    resp=`Session: ${Math.floor((Date.now()-sessionStart)/60000)}min. ${pos.length} open, ${D.closed.length} closed. P&L: ${pnl(a.today_pnl)}. Win: ${parseFloat(a.win_rate||0).toFixed(0)}%.`;
+  }else{
+    resp=`Command "${cmd}" received. Available: status, risks, runners, recommend, health, recap.`;
   }
 
-  let ci=0;
-  const typeInterval=setInterval(()=>{
-    if(ci<text.length){
-      div.insertBefore(document.createTextNode(text[ci]),cursor);
-      ci++;
-    }else{
-      clearInterval(typeInterval);
-      setTimeout(()=>{cursor.remove();setTimeout(typeIntelLine,500);},1500);
-    }
-  },35);
+  setTimeout(()=>{
+    log.innerHTML+=`<div class="j-msg"><span class="j-r">JARVIS &gt;</span> ${resp}</div>`;
+    log.scrollTop=log.scrollHeight;
+    if(rpLog)rpLog.innerHTML+=`<div><span class="src">JARVIS:</span> ${resp}</div>`;
+  },300);
+  log.scrollTop=log.scrollHeight;
 }
 
-// ══════════════════════════════════════
-// SIGNAL TABLE
-// ══════════════════════════════════════
-const sigBody=document.getElementById('sig-body');
-function addSig(){
-  const ts=new Date().toTimeString().slice(0,8);
-  const s=SIGS[Math.floor(Math.random()*SIGS.length)];
-  const tr=document.createElement('tr');
-  tr.style.animation='rowIn .3s var(--ease)';
-  tr.innerHTML='<td style="color:#aaa">'+ts+'</td><td style="color:#fff;font-weight:bold">'+s.ticker+'</td><td style="color:#ccc">'+s.dir+'</td><td style="color:#ccc">'+s.grade+'</td><td style="color:#aaa">'+s.setup+'</td><td class="'+s.c+'">'+s.status+'</td>';
-  if(sigBody.firstChild)sigBody.insertBefore(tr,sigBody.firstChild);
-  else sigBody.appendChild(tr);
-  while(sigBody.children.length>6)sigBody.lastChild.remove();
-}
-
-// ══════════════════════════════════════
-// SERVICE STATUS
-// ══════════════════════════════════════
-async function fetchStatus(){
-  try{
-    const r=await fetch('/api/service-status');const d=await r.json();
-    let up=0,tot=0;
-    for(const[n,s]of Object.entries(d)){
-      tot++;const dot=document.getElementById('dot-'+n);
-      if(dot)dot.className='tile-dot '+(s==='ok'?'ok':'down');
-      if(s==='ok')up++;
-    }
-    document.getElementById('svc-count').textContent=up+'/'+tot+' ONLINE';
-    document.getElementById('last-check').textContent=new Date().toLocaleTimeString('en-US',{hour12:false});
-    uStat('st-open',String(Math.floor(Math.random()*40+60)));
-    uStat('st-sig',String(Math.floor(Math.random()*20+30)));
-    uStat('st-trd',String(Math.floor(Math.random()*10+5)));
-    const pnl=Math.floor(Math.random()*2000-500);
-    const pe=document.getElementById('st-pnl');
-    pe.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl);pe.className='vl '+(pnl>=0?'g':'r');
-    uStat('st-wr',Math.floor(Math.random()*30+50)+'%');
-    const ae=document.getElementById('st-agent');ae.textContent=up>=2?'RUNNING':'PAUSED';
-    ae.className='vl '+(up>=2?'g':'a');
-  }catch(e){document.getElementById('svc-count').textContent='ERROR'}
-}
-
+// ═══════════════════════════════════════
+// CLOCK + INIT
+// ═══════════════════════════════════════
 function clock(){
-  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';
+  $('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})+' ET';
 }
 
-// ══════════════════════════════════════
-// INIT
-// ══════════════════════════════════════
-fetchStatus();
-setInterval(fetchStatus,15000);
-setInterval(clock,1000);clock();
-if(!RM){
-  initSonar();
-  requestAnimationFrame(drawSonar);  // single RAF entry point
-  setInterval(spawnDot,3000);         // dots on separate timer
-  setInterval(cleanDots,5000);        // cleanup on separate timer
-  window.addEventListener('resize',initSonar);
-  setInterval(addSig,2500);addSig();addSig();addSig();
-}
-typeIntelLine(); // start typewriter (works with or without RM)
+fetchAll();
+setInterval(fetchAll,30000);
+setInterval(clock,1000);
+clock();
+renderPlaybooks();
+renderSecurity();
 </script>
 </body>
 </html>
