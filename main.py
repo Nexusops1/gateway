@@ -24,7 +24,7 @@ ADMIN_PASSWORD = os.environ.get("NEXUS_ADMIN_PASSWORD", "")
 JWT_SECRET = os.environ.get("NEXUS_JWT_SECRET", "")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY = 43200  # 12 hours
-COOKIE_DOMAIN = ".praxiumholdings.com"
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", ".praxiumholdings.com")
 
 SERVICES = {
     "core": "https://core.praxiumholdings.com",
@@ -114,7 +114,7 @@ def root(request: Request):
 
 
 @app.post("/auth/login")
-def login(response: Response, username: str = Form(...), password: str = Form(...)):
+def login(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
     if username != ADMIN_USER or password != ADMIN_PASSWORD:
         return HTMLResponse(
             content=open(str(static_dir / "login.html")).read().replace(
@@ -125,13 +125,16 @@ def login(response: Response, username: str = Form(...), password: str = Form(..
         )
     token = _create_token(username)
     resp = RedirectResponse(url="/", status_code=303)
+    # Use .praxiumholdings.com domain for custom domain, omit domain for Railway URLs
+    host = request.headers.get("host", "")
+    cookie_domain = COOKIE_DOMAIN if "praxiumholdings.com" in host else None
     resp.set_cookie(
         key="nexus_session",
         value=token,
         httponly=True,
         secure=True,
         samesite="lax",
-        domain=COOKIE_DOMAIN,
+        domain=cookie_domain,
         path="/",
         max_age=JWT_EXPIRY,
     )
@@ -152,13 +155,14 @@ def unauthorized_page():
 
 
 @app.get("/auth/logout")
-def logout():
+def logout(request: Request):
     resp = RedirectResponse(url="/", status_code=303)
-    resp.delete_cookie(
-        key="nexus_session",
-        domain=COOKIE_DOMAIN,
-        path="/",
-    )
+    host = request.headers.get("host", "")
+    cookie_domain = COOKIE_DOMAIN if "praxiumholdings.com" in host else None
+    resp.delete_cookie(key="nexus_session", domain=cookie_domain, path="/")
+    # Also clear without domain for Railway URLs
+    if cookie_domain:
+        resp.delete_cookie(key="nexus_session", path="/")
     return resp
 
 

@@ -371,7 +371,15 @@ function cycleMode(){modeIdx=(modeIdx+1)%3;localStorage.setItem('nexusMode',mode
 // ═══════════════════════════════════════
 async function fetchAll(){
   prevD=JSON.parse(JSON.stringify(D));
-  const f=async(u)=>{try{const r=await fetch(u);return await r.json()}catch{return null}};
+  const f=async(u)=>{
+    try{
+      const r=await fetch(u,{credentials:'include'});
+      if(!r.ok)return null;
+      const j=await r.json();
+      if(j&&j.error)return null; // proxy error response
+      return j;
+    }catch{return null}
+  };
   const[stats,positions,pipeline,signal,closed,account,agent,services,systemStats]=await Promise.all([
     f('/api/nexus/stats'),f('/api/nexus/positions'),f('/api/nexus/pipeline'),
     f('/api/nexus/signal'),f('/api/nexus/closed'),f('/api/nexus/account'),
