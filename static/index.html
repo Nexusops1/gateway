@@ -418,12 +418,25 @@ function renderOverview(){
   const a=D.account||{};const s=D.stats||{};const ag=D.agent||{};const pos=D.positions;
   const ss=D.systemStats||{};
 
-  // Briefing
+  // Briefing — rich, operational
   const status=ag.status||'UNKNOWN';const openC=pos.length;
   const todayPnl=parseFloat(a.today_pnl||0);const wr=parseFloat(a.win_rate||0);
+  const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0));
+  const topRunner=sorted[0];const topRisk=sorted[sorted.length-1];
+  const setupCounts={};pos.forEach(p=>{const sf=p.setup_family||'unknown';setupCounts[sf]=(setupCounts[sf]||0)+1});
+  const strongestSetup=Object.entries(setupCounts).sort((a,b)=>b[1]-a[1])[0];
+  const qf=ss.quote_fail_count||0;const ns=ss.near_stop_count||0;
+  const concern=qf>10?'Quote failures elevated ('+qf+' in 15min)':ns>5?ns+' positions near stop loss':wr<20?'Win rate critically low':'No major concerns';
+  const rec=status==='PAUSED'?'Resume agent or review pause reason':qf>10?'Monitor Tradier connection stability':ns>5?'Review risk zone positions':wr<30?'Review signal quality thresholds':'Continue '+modes[modeIdx]+' mode';
+
   $('briefing').innerHTML=`NEXUS autonomous trading system is <b class="${status==='RUNNING'?'g':'r'}">${status}</b>. `
-    +`<b>${openC}</b> positions open. Today P&L: <b class="${pc(todayPnl)}">${pnl(todayPnl)}</b>. `
-    +`Win rate: <b>${wr.toFixed(0)}%</b>. Heartbeat: <b class="${(ss.heartbeat_age_seconds||99)<30?'g':'a'}">${ss.heartbeat_age_seconds||'--'}s</b>.`;
+    +`<b>${openC}</b> positions open across <b>${Object.keys(setupCounts).length}</b> tickers. Today P&L: <b class="${pc(todayPnl)}">${pnl(todayPnl)}</b>. `
+    +`Win rate: <b class="${wr>=50?'g':wr>=30?'a':'r'}">${wr.toFixed(0)}%</b>. Heartbeat: <b class="${(ss.heartbeat_age_seconds||99)<30?'g':'a'}">${ss.heartbeat_age_seconds||'--'}s</b>.<br>`
+    +(topRunner?`Top runner: <b class="g">${topRunner.ticker}</b> (${pnl(topRunner.current_pnl)}). `:'')
+    +(topRisk&&parseFloat(topRisk.current_pnl||0)<0?`Top risk: <b class="r">${topRisk.ticker}</b> (${pnl(topRisk.current_pnl)}). `:'')
+    +(strongestSetup?`Strongest setup: <b class="c">${strongestSetup[0]}</b> (${strongestSetup[1]} positions). `:'')
+    +`Biggest concern: <b class="a">${concern}</b>.<br>`
+    +`Recommendation: <span class="c">${rec}</span>.`;
 
   // Priorities
   const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0));
@@ -446,15 +459,31 @@ function renderOverview(){
     {n:'JARVIS',s:'off',i:'Phase 2',i2:'Adaptive intelligence'},
   ].map(a=>`<div class="ac"><div class="ac-n"><div class="s-dot ${a.s==='ok'?'ok':a.s==='off'?'off':'err'}"></div>${a.n}</div><div class="ac-i">${a.i}</div><div class="ac-i">${a.i2}</div></div>`).join('');
 
-  // What changed
+  // What changed — rich delta detection
   if(prevD&&prevD.positions){
     const pO=prevD.positions.length;const nO=pos.length;const delta=nO-pO;
     const pPnl=parseFloat((prevD.account||{}).today_pnl||0);const nPnl=todayPnl;
-    const pnlD=nPnl-pPnl;
+    const pnlDelta=nPnl-pPnl;
+    const pWr=parseFloat((prevD.account||{}).win_rate||0);const wrDelta=wr-pWr;
+    const pQf=parseFloat((prevD.systemStats||{}).quote_fail_count||0);const qfDelta=qf-pQf;
+    const pClosed=(prevD.closed||[]).length;const closedDelta=D.closed.length-pClosed;
+    const pCycles=parseFloat((prevD.pipeline||{}).cycles||0);const cycDelta=parseFloat((D.pipeline||{}).cycles||0)-pCycles;
+    // Find new runners (positions that went from negative to positive)
+    const prevIds=new Set((prevD.positions||[]).map(p=>p.id));
+    const newPositions=pos.filter(p=>!prevIds.has(p.id));
+    // Find TP hits
+    const prevTp1=new Set((prevD.positions||[]).filter(p=>p.tp1_hit).map(p=>p.id));
+    const newTp1=pos.filter(p=>p.tp1_hit&&!prevTp1.has(p.id));
+
     const items=[];
-    if(delta>0)items.push(`<div class="g">+ ${delta} new positions opened</div>`);
-    if(delta<0)items.push(`<div class="r">- ${Math.abs(delta)} positions closed</div>`);
-    if(Math.abs(pnlD)>1)items.push(`<div class="${pc(pnlD)}">P&L change: ${pnl(pnlD)}</div>`);
+    if(delta>0)items.push(`<div class="g">+ ${delta} new position${delta>1?'s':''} opened${newPositions.length?': '+newPositions.map(p=>p.ticker).join(', '):''}</div>`);
+    if(delta<0)items.push(`<div class="r">- ${Math.abs(delta)} position${Math.abs(delta)>1?'s':''} closed</div>`);
+    if(closedDelta>0)items.push(`<div class="c">+ ${closedDelta} trade${closedDelta>1?'s':''} closed today</div>`);
+    if(Math.abs(pnlDelta)>1)items.push(`<div class="${pc(pnlDelta)}">P&L change: ${pnl(pnlDelta)}</div>`);
+    if(Math.abs(wrDelta)>0.5)items.push(`<div class="${pc(wrDelta)}">Win rate: ${wrDelta>0?'+':''}${wrDelta.toFixed(1)}%</div>`);
+    if(qfDelta>0)items.push(`<div class="a">Quote failures +${qfDelta}</div>`);
+    if(newTp1.length)items.push(`<div class="g">${newTp1.map(p=>p.ticker).join(', ')} hit TP1</div>`);
+    if(cycDelta>0)items.push(`<div style="color:var(--muted)">${cycDelta} pipeline cycle${cycDelta>1?'s':''} completed</div>`);
     $('changes').innerHTML=items.length?items.join(''):'<div style="color:var(--muted)">No changes detected</div>';
   }
 
@@ -470,13 +499,35 @@ function renderOverview(){
     {l:'CYCLES',v:(D.pipeline||{}).cycles||'--',c:'var(--white)'},
   ].map(h=>`<div class="hm"><div class="hl">${h.l}</div><div class="hv" style="color:${h.c}">${h.v}</div></div>`).join('');
 
-  // Recap
+  // Agent Comms — synthesized from real state
+  const commsItems=[];
+  commsItems.push({src:'SENTINEL',msg:Object.values(D.services||{}).every(s=>s==='ok')?'All health checks passed':'Service degradation detected',t:'now'});
+  if(D.pipeline&&D.pipeline.cycles)commsItems.push({src:'INTELLIGENCE',msg:`Pipeline cycle ${D.pipeline.cycles} complete. ${D.pipeline.signals_evaluated||0} evaluated, ${D.pipeline.signals_qualified||0} qualified.`,t:'15s'});
+  if(topRunner)commsItems.push({src:'EXECUTION',msg:`Top runner: ${topRunner.ticker} at ${pnl(topRunner.current_pnl)}. ${pos.length} positions active.`,t:'15s'});
+  if(strongestSetup)commsItems.push({src:'OUTCOMES',msg:`Strongest setup: ${strongestSetup[0]} (${strongestSetup[1]} positions). Win rate: ${wr.toFixed(0)}%.`,t:'30s'});
+  if(qf>5)commsItems.push({src:'SENTINEL',msg:`Quote failures elevated: ${qf} in last 15min.`,t:'15s'});
+  if(ns>0)commsItems.push({src:'PORTFOLIO',msg:`${ns} position${ns>1?'s':''} within 10% of stop loss.`,t:'15s'});
+  commsItems.push({src:'JARVIS',msg:`Recommending ${modes[modeIdx]} mode. ${concern==='No major concerns'?'All systems nominal.':concern+'.'}`,t:'30s'});
+  $('comms').innerHTML=commsItems.map(c=>`<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid var(--border2);font-size:10px"><span style="color:var(--cyand);min-width:80px;font-weight:600;text-align:right">${c.src}</span><span style="color:var(--grey)">${c.msg}</span><span style="color:var(--muted);margin-left:auto;flex-shrink:0;font-size:9px">${c.t}</span></div>`).join('');
+
+  // Recap — enriched with best/worst ticker, best setup, key insight
   const el=Math.floor((Date.now()-sessionStart)/60000);
-  $('recap').innerHTML=`<div class="row"><span>Session Duration</span><span class="v">${el}m</span></div>`
+  const bestClosed=D.closed.length?[...D.closed].sort((a,b)=>parseFloat(b.pnl_dollars||0)-parseFloat(a.pnl_dollars||0))[0]:null;
+  const worstClosed=D.closed.length?[...D.closed].sort((a,b)=>parseFloat(a.pnl_dollars||0)-parseFloat(b.pnl_dollars||0))[0]:null;
+  const setupPerf={};D.closed.forEach(t=>{const sf=t.setup_family||'unknown';if(!setupPerf[sf])setupPerf[sf]={w:0,t:0};setupPerf[sf].t++;if(parseFloat(t.pnl_dollars||0)>0)setupPerf[sf].w++});
+  const bestSetup=Object.entries(setupPerf).sort((a,b)=>(b[1].w/b[1].t)-(a[1].w/a[1].t))[0];
+  const keyInsight=wr>=50?'System performing above baseline — maintain current strategy':wr>=30?'Performance within norms — monitor for trend changes':'Win rate below target — review signal quality and disqualifier thresholds';
+
+  $('recap').innerHTML=`<div class="row"><span>Session Duration</span><span class="v">${Math.floor(el/60)}h ${el%60}m</span></div>`
     +`<div class="row"><span>Open Positions</span><span class="v">${pos.length}</span></div>`
     +`<div class="row"><span>Closed Today</span><span class="v">${D.closed.length}</span></div>`
     +`<div class="row"><span>Net P&L</span><span class="v ${pc(todayPnl)}">${pnl(todayPnl)}</span></div>`
-    +`<div class="row"><span>Win Rate</span><span class="v">${wr.toFixed(0)}%</span></div>`;
+    +`<div class="row"><span>Win Rate</span><span class="v ${wr>=50?'g':wr>=30?'a':'r'}">${wr.toFixed(0)}%</span></div>`
+    +(bestClosed?`<div class="row"><span>Best Trade</span><span class="v g">${bestClosed.ticker} ${pnl(bestClosed.pnl_dollars)}</span></div>`:'')
+    +(worstClosed?`<div class="row"><span>Worst Trade</span><span class="v r">${worstClosed.ticker} ${pnl(worstClosed.pnl_dollars)}</span></div>`:'')
+    +(bestSetup?`<div class="row"><span>Best Setup</span><span class="v">${bestSetup[0]} (${Math.round(bestSetup[1].w/bestSetup[1].t*100)}% win)</span></div>`:'')
+    +(strongestSetup?`<div class="row"><span>Most Active Setup</span><span class="v c">${strongestSetup[0]} (${strongestSetup[1]} open)</span></div>`:'')
+    +`<div class="row"><span>Key Insight</span><span class="v" style="font-size:10px">${keyInsight}</span></div>`;
 }
 
 // ═══════════════════════════════════════
@@ -699,26 +750,46 @@ function jcmd(cmd){
   log.innerHTML+=`<div class="j-msg"><span class="j-u">NexusOps &gt;</span> ${cmd}</div>`;
 
   let resp='';
+  const wr_j=parseFloat(a.win_rate||0);
+  const sorted_j=[...pos].sort((x,y)=>parseFloat(y.current_pnl||0)-parseFloat(x.current_pnl||0));
+  const topR=sorted_j[0];const topL=sorted_j[sorted_j.length-1];
+  const setupCts={};pos.forEach(p=>{const sf=p.setup_family||'?';setupCts[sf]=(setupCts[sf]||0)+1});
+  const topSetup=Object.entries(setupCts).sort((a,b)=>b[1]-a[1])[0];
+
   if(c==='status'){
-    resp=`System: ${ag.status||'UNKNOWN'}. ${pos.length} positions open. P&L: ${pnl(a.today_pnl)}. Win rate: ${parseFloat(a.win_rate||0).toFixed(0)}%. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s.`;
+    resp=`System: ${ag.status||'UNKNOWN'}. ${pos.length} positions open across ${Object.keys(setupCts).length} setups. P&L: ${pnl(a.today_pnl)}. Win rate: ${wr_j.toFixed(0)}%. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s. Pipeline: ${(D.pipeline||{}).cycles||'--'} cycles, ${(D.pipeline||{}).signals_evaluated||'--'} signals evaluated.`;
   }else if(c==='risks'){
-    resp=`Near stop: ${ss.near_stop_count||0}. Quote failures: ${ss.quote_fail_count||0}. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s. ${ag.status==='PAUSED'?'AGENT IS PAUSED.':'Agent running.'}`;
+    const riskItems=[];
+    if((ss.near_stop_count||0)>0)riskItems.push(`${ss.near_stop_count} positions near stop`);
+    if((ss.quote_fail_count||0)>5)riskItems.push(`${ss.quote_fail_count} quote failures in 15min`);
+    if((ss.heartbeat_age_seconds||0)>30)riskItems.push(`Heartbeat delayed: ${ss.heartbeat_age_seconds}s`);
+    if(ag.status==='PAUSED')riskItems.push('AGENT IS PAUSED');
+    if(wr_j<20)riskItems.push(`Win rate critically low: ${wr_j.toFixed(0)}%`);
+    if(topL&&parseFloat(topL.current_pnl||0)<-50)riskItems.push(`Worst position: ${topL.ticker} at ${pnl(topL.current_pnl)}`);
+    resp=riskItems.length?riskItems.join('. ')+'.':`No significant risks detected. All systems nominal.`;
   }else if(c==='runners'){
-    const sorted=[...pos].sort((a,b)=>parseFloat(b.current_pnl||0)-parseFloat(a.current_pnl||0)).slice(0,5);
-    resp=sorted.length?sorted.map(p=>`${p.ticker} ${(p.direction||'').slice(0,3)} ${pnl(p.current_pnl)}`).join(' | '):'No open positions.';
+    const top5=sorted_j.filter(p=>parseFloat(p.current_pnl||0)>0).slice(0,5);
+    resp=top5.length?'Top runners: '+top5.map(p=>`${p.ticker} ${(p.direction||'').slice(0,3)} ${pnl(p.current_pnl)}${p.tp1_hit?' (TP1)':''}`).join(' | '):'No profitable positions currently.';
   }else if(c==='recommend'){
     const recs=[];
-    if(pos.length>50)recs.push('Monitor concentration');
-    if((ss.quote_fail_count||0)>10)recs.push('Check Tradier');
-    if((ss.heartbeat_age_seconds||0)>30)recs.push('Check execution');
-    resp=recs.length?recs.join('. ')+'.':`All systems nominal. Continue ${modes[modeIdx]} mode.`;
+    if(ag.status==='PAUSED')recs.push('Review pause reason and consider resuming');
+    if(pos.length>100)recs.push('High position count ('+pos.length+') — monitor concentration');
+    if((ss.quote_fail_count||0)>10)recs.push('Quote failures elevated — check Tradier connection');
+    if(wr_j<20)recs.push('Win rate below threshold — review signal quality');
+    if((ss.near_stop_count||0)>5)recs.push('Multiple positions near stop — review risk zone');
+    if(!recs.length)recs.push(`All systems nominal. Continue ${modes[modeIdx]} mode.`);
+    resp=recs.join('. ')+'.';
   }else if(c==='health'){
     const sv=D.services||{};
-    resp=Object.entries(sv).map(([n,s])=>`${n}: ${s==='ok'?'ONLINE':'OFFLINE'}`).join(' | ')||'No service data.';
+    resp=Object.entries(sv).map(([n,s])=>`${n}: ${s==='ok'?'ONLINE':'OFFLINE'}`).join(' | ')
+      +`. Heartbeat: ${ss.heartbeat_age_seconds||'--'}s. Quote fails: ${ss.quote_fail_count||0}. Pipeline: ${(D.pipeline||{}).cycles||'--'} cycles.`;
   }else if(c==='recap'){
-    resp=`Session: ${Math.floor((Date.now()-sessionStart)/60000)}min. ${pos.length} open, ${D.closed.length} closed. P&L: ${pnl(a.today_pnl)}. Win: ${parseFloat(a.win_rate||0).toFixed(0)}%.`;
+    const mins=Math.floor((Date.now()-sessionStart)/60000);
+    resp=`Session: ${Math.floor(mins/60)}h ${mins%60}m. ${pos.length} open, ${D.closed.length} closed today. P&L: ${pnl(a.today_pnl)}. Win: ${wr_j.toFixed(0)}%.`
+      +(topR?` Best: ${topR.ticker} ${pnl(topR.current_pnl)}.`:'')
+      +(topSetup?` Top setup: ${topSetup[0]} (${topSetup[1]} positions).`:'');
   }else{
-    resp=`Command "${cmd}" received. Available: status, risks, runners, recommend, health, recap.`;
+    resp=`Command "${cmd}" not recognized. Available: status, risks, runners, recommend, health, recap.`;
   }
 
   setTimeout(()=>{
